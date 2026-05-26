@@ -1,7 +1,7 @@
 import SwiftUI
 
-// 隱私政策網址 — 請將下方 URL 換成你實際部署的 GitHub Pages / Notion 頁面
-private let privacyPolicyURL = URL(string: "https://neroal.github.io/invoice-swipe-game-privacy")!
+// 隱私政策網址 — 部署至 GitHub Pages (docs/ 資料夾)
+private let privacyPolicyURL = URL(string: "https://neroal.github.io/invoice-swipe-game-ios/")!
 
 struct SettingsView: View {
     @EnvironmentObject var vm: GameViewModel
