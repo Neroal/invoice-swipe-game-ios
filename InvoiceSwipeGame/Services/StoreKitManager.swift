@@ -114,9 +114,18 @@ final class StoreKitManager: ObservableObject {
 
     /// 啟動時重新驗證現有權益（防止解除安裝後重裝遺失）
     func refreshPurchaseStatus() async {
+        var found = false
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? checkVerified(result) else { continue }
-            await updatePurchased(transaction)
+            if transaction.productID == coffeeProductID && transaction.revocationDate == nil {
+                found = true
+                await updatePurchased(transaction)
+            }
+        }
+        // 若 currentEntitlements 找不到有效交易，代表已退款或從未購買，同步清除快取
+        if !found {
+            isPurchased = false
+            UserDefaults.standard.set(false, forKey: "coffee_supporter")
         }
     }
 

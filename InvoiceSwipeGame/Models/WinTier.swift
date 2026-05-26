@@ -25,6 +25,23 @@ enum WinTier: String, CaseIterable {
 
     var isBigWin: Bool { [.special, .grand, .first].contains(self) }
 
+    /// 基礎 +2 之外的額外加分，各獎級遞增
+    var bonusPoints: Int {
+        switch self {
+        case .special: return 10  // 共 +12
+        case .grand:   return 8   // 共 +10
+        case .first:   return 6   // 共 +8
+        case .second:  return 5   // 共 +7
+        case .third:   return 4   // 共 +6
+        case .fourth:  return 3   // 共 +5
+        case .fifth:   return 2   // 共 +4
+        case .sixth:   return 1   // 共 +3
+        }
+    }
+
+    /// Badge 顯示文字，以分數取代獎金金額
+    var scoreText: String { "+\(2 + bonusPoints)分" }
+
     var amountString: String {
         let f = NumberFormatter()
         f.numberStyle = .decimal

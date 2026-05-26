@@ -1,8 +1,8 @@
 import Foundation
 
 enum GameMode: String, CaseIterable, Identifiable {
-    case normal  = "normal"
     case daily   = "daily"
+    case normal  = "normal"
     case endless = "endless"
 
     var id: String { rawValue }
@@ -25,9 +25,9 @@ enum GameMode: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
-        case .normal:  return "30 秒內判斷越多張越好\n考驗眼力與反應速度"
-        case .daily:   return "全球同一題，每天更新\n純比反應速度與判斷力"
-        case .endless: return "答錯 3 次遊戲結束\n挑戰最長連續答對紀錄"
+        case .daily:   return "全球同一題，每天限 3 次"
+        case .normal:  return "30 秒限時，拼加權分數"
+        case .endless: return "3 條命，衝最長連續紀錄"
         }
     }
 

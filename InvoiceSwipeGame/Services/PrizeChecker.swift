@@ -14,13 +14,13 @@ struct PrizeChecker {
         guard number.count == 8 else { return nil }
         if number == prizes.special { return .special }
         if number == prizes.grand   { return .grand   }
-        if number == prizes.first   { return .first   }
-        let f = prizes.first
-        if number.suffix(7) == f.suffix(7) { return .second  }
-        if number.suffix(6) == f.suffix(6) { return .third   }
-        if number.suffix(5) == f.suffix(5) { return .fourth  }
-        if number.suffix(4) == f.suffix(4) { return .fifth   }
-        if number.suffix(3) == f.suffix(3) { return .sixth   }
+        // 三組頭獎：從高獎級往低逐一比對，最先命中者為準
+        for f in prizes.firsts { if number          == f          { return .first  } }
+        for f in prizes.firsts { if number.suffix(7) == f.suffix(7) { return .second } }
+        for f in prizes.firsts { if number.suffix(6) == f.suffix(6) { return .third  } }
+        for f in prizes.firsts { if number.suffix(5) == f.suffix(5) { return .fourth } }
+        for f in prizes.firsts { if number.suffix(4) == f.suffix(4) { return .fifth  } }
+        for f in prizes.firsts { if number.suffix(3) == f.suffix(3) { return .sixth  } }
         return nil
     }
 
@@ -34,7 +34,9 @@ struct PrizeChecker {
         PrizeNumbers(
             special: rand8(rng: &rng),
             grand:   rand8(rng: &rng),
-            first:   rand8(rng: &rng)
+            first1:  rand8(rng: &rng),
+            first2:  rand8(rng: &rng),
+            first3:  rand8(rng: &rng)
         )
     }
 
@@ -67,14 +69,16 @@ struct PrizeChecker {
 
         if forceWin {
             let t = rng.next()
+            // 隨機從三組頭獎中選一組作為本次中獎號碼的基底
+            let f = rng.nextElement(prizes.firsts)
             if      t < 0.02 { number = prizes.special }
             else if t < 0.06 { number = prizes.grand   }
-            else if t < 0.16 { number = prizes.first   }
-            else if t < 0.33 { number = String(rand8(rng: &rng).prefix(1)) + prizes.first.suffix(7) }
-            else if t < 0.50 { number = String(rand8(rng: &rng).prefix(2)) + prizes.first.suffix(6) }
-            else if t < 0.65 { number = String(rand8(rng: &rng).prefix(3)) + prizes.first.suffix(5) }
-            else if t < 0.82 { number = String(rand8(rng: &rng).prefix(4)) + prizes.first.suffix(4) }
-            else              { number = String(rand8(rng: &rng).prefix(5)) + prizes.first.suffix(3) }
+            else if t < 0.16 { number = f }
+            else if t < 0.33 { number = String(rand8(rng: &rng).prefix(1)) + f.suffix(7) }
+            else if t < 0.50 { number = String(rand8(rng: &rng).prefix(2)) + f.suffix(6) }
+            else if t < 0.65 { number = String(rand8(rng: &rng).prefix(3)) + f.suffix(5) }
+            else if t < 0.82 { number = String(rand8(rng: &rng).prefix(4)) + f.suffix(4) }
+            else              { number = String(rand8(rng: &rng).prefix(5)) + f.suffix(3) }
         } else {
             var attempts = 0
             repeat {

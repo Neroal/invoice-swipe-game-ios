@@ -30,33 +30,35 @@ struct BigWinOverlayView: View {
     }
 
     var body: some View {
-        ZStack {
-            RadialGradient(
-                colors: bgColors,
-                center: .center,
-                startRadius: 0,
-                endRadius: UIScreen.main.bounds.height
-            )
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                RadialGradient(
+                    colors: bgColors,
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: geo.size.height
+                )
+                .ignoresSafeArea()
 
-            VStack(spacing: 16) {
-                Text(tier.rawValue)
-                    .font(.system(size: 100, weight: .black))
-                    .foregroundColor(tierColor)
-                    .shadow(color: glowColor.opacity(0.8), radius: 30)
-                    .shadow(color: glowColor.opacity(0.4), radius: 60)
+                VStack(spacing: 16) {
+                    Text(tier.rawValue)
+                        .font(.system(size: 100, weight: .black))
+                        .foregroundColor(tierColor)
+                        .shadow(color: glowColor.opacity(0.8), radius: 30)
+                        .shadow(color: glowColor.opacity(0.4), radius: 60)
 
-                Text(tier.amountString)
-                    .font(.system(size: 36, weight: .black))
-                    .foregroundColor(tierColor.opacity(0.85))
+                    Text(tier.amountString)
+                        .font(.system(size: 36, weight: .black))
+                        .foregroundColor(tierColor.opacity(0.85))
+                }
+                .transition(.scale(scale: 0.3).combined(with: .opacity))
+
+                // Particle emitter overlay
+                if tier == .special || tier == .grand {
+                    ConfettiView(intensity: tier == .special ? .high : .medium)
+                }
             }
-            .transition(.scale(scale: 0.3).combined(with: .opacity))
-
-            // Particle emitter overlay
-            if tier == .special || tier == .grand {
-                ConfettiView(intensity: tier == .special ? .high : .medium)
-            }
+            .animation(.spring(dampingFraction: 0.65), value: vm.showBigWin)
         }
-        .animation(.spring(dampingFraction: 0.65), value: vm.showBigWin)
     }
 }

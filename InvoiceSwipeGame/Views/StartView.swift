@@ -82,40 +82,54 @@ private struct ModeCardView: View {
     @EnvironmentObject var vm: GameViewModel
     let mode: GameMode
 
+    private var isDailyDisabled: Bool {
+        mode == .daily && !vm.canPlayDaily
+    }
+
     var body: some View {
         Button { vm.selectMode(mode) } label: {
             HStack(spacing: 14) {
                 Image(systemName: mode.systemIcon)
                     .font(.system(size: 22))
-                    .foregroundColor(Color(hex: "e94560"))
+                    .foregroundColor(isDailyDisabled ? .white.opacity(0.25) : Color(hex: "e94560"))
                     .frame(width: 32)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(mode.displayName)
                         .font(.system(size: 15, weight: .heavy))
-                        .foregroundColor(.white)
+                        .foregroundColor(isDailyDisabled ? .white.opacity(0.35) : .white)
                         .tracking(2)
                     Text(mode.description)
                         .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.5))
+                        .foregroundColor(.white.opacity(0.35))
                         .multilineTextAlignment(.leading)
-                    if mode == .daily, !vm.dailyBestText.isEmpty {
-                        Text(vm.dailyBestText)
+                    if mode == .daily {
+                        if !vm.dailyBestText.isEmpty {
+                            Text(vm.dailyBestText)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(Color(hex: "f5a623"))
+                        }
+                        Text(vm.dailyAttemptsText)
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Color(hex: "f5a623"))
+                            .foregroundColor(
+                                vm.canPlayDaily
+                                    ? Color(hex: "4fc3f7")
+                                    : Color(hex: "e74c3c")
+                            )
                     }
                 }
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.2))
+                    .foregroundColor(.white.opacity(isDailyDisabled ? 0.08 : 0.2))
             }
             .padding(16)
-            .background(Color.white.opacity(0.04))
+            .background(Color.white.opacity(isDailyDisabled ? 0.02 : 0.04))
             .overlay(RoundedRectangle(cornerRadius: 14)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1.5))
+                .stroke(Color.white.opacity(isDailyDisabled ? 0.05 : 0.1), lineWidth: 1.5))
             .cornerRadius(14)
         }
         .buttonStyle(.plain)
+        .disabled(isDailyDisabled)
         .hapticTap(style: .medium)
     }
 }

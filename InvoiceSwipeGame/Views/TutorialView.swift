@@ -27,6 +27,7 @@ struct TutorialView: View {
                             text: "快速對照下方**發票號碼**\n判斷是否符合中獎條件")
                     stepRow(num: "3",
                             text: "**右滑** = 中獎　　**左滑** = 未中\n也可點畫面下方按鈕")
+                    stepRow(num: "4", text: scoringRuleText)
                 }
                 .padding(.horizontal, 24)
 
@@ -53,6 +54,15 @@ struct TutorialView: View {
             }
         }
         .transition(.opacity)
+    }
+
+    private var scoringRuleText: String {
+        switch vm.currentMode {
+        case .daily, .normal:
+            return "答對 **+2 至 +12 分**（依獎級高低）\n答錯扣 **3 分**，準確才能拿高分"
+        case .endless:
+            return "答錯扣一條命，共 **3 條命**\n排名 = 最長連續 **×1000** + 總張數"
+        }
     }
 
     private func stepRow(num: String, text: String) -> some View {

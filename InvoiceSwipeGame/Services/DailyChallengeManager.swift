@@ -2,20 +2,28 @@ import Foundation
 
 struct DailyChallengeManager {
 
-    private var storageKey: String {
+    static let maxAttempts = 3
+
+    // MARK: – Date key (共用，隔天自動換 key)
+
+    private var dateString: String {
         let c = Calendar.current
         let d = Date()
         let y   = c.component(.year,  from: d)
         let m   = c.component(.month, from: d)
         let day = c.component(.day,   from: d)
-        return String(format: "daily_best_%04d%02d%02d", y, m, day)
+        return String(format: "%04d%02d%02d", y, m, day)
     }
+
+    private var storageKey:  String { "daily_best_\(dateString)"     }
+    private var attemptsKey: String { "daily_attempts_\(dateString)" }
+
+    // MARK: – Best score
 
     func bestScore() -> Int {
         UserDefaults.standard.integer(forKey: storageKey)
     }
 
-    /// Saves only if `score` beats the current best. Returns true if it's a new record.
     @discardableResult
     func tryUpdateBest(_ score: Int) -> Bool {
         guard score > bestScore() else { return false }
@@ -25,6 +33,28 @@ struct DailyChallengeManager {
 
     var bestDisplayText: String {
         let b = bestScore()
-        return b > 0 ? "今日最高：\(b) 張" : ""
+        return b > 0 ? "今日最高：\(b) 分" : ""
+    }
+
+    // MARK: – Attempts
+
+    func attemptsUsed() -> Int {
+        UserDefaults.standard.integer(forKey: attemptsKey)
+    }
+
+    var remainingAttempts: Int {
+        max(0, Self.maxAttempts - attemptsUsed())
+    }
+
+    var canPlay: Bool { remainingAttempts > 0 }
+
+    func recordAttempt() {
+        UserDefaults.standard.set(attemptsUsed() + 1, forKey: attemptsKey)
+    }
+
+    var attemptsDisplayText: String {
+        remainingAttempts > 0
+            ? "今日剩餘 \(remainingAttempts) 次"
+            : "今日挑戰已結束"
     }
 }

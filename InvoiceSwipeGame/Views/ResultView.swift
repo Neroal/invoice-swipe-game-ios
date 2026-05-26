@@ -44,10 +44,12 @@ struct ResultView: View {
                             .tracking(3)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity).padding(.vertical, 15)
-                            .background(Color(hex: "e94560"))
+                            .background(replayDisabled ? Color.white.opacity(0.1) : Color(hex: "e94560"))
                             .cornerRadius(10)
-                            .shadow(color: Color(hex: "a0001e"), radius: 0, x: 0, y: 4)
+                            .shadow(color: replayDisabled ? .clear : Color(hex: "a0001e"),
+                                    radius: 0, x: 0, y: 4)
                     }
+                    .disabled(replayDisabled)
                     .hapticTap(style: .medium)
                     Button { vm.goHome() } label: {
                         Text("回主選單")
@@ -70,12 +72,21 @@ struct ResultView: View {
         VStack(spacing: 18) {
             if vm.currentMode == .endless {
                 statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color(hex: "a78bfa"))
-                statRow(label: "判斷張數",    value: "\(vm.totalCount)",   color: Color(hex: "f5a623"))
+                statRow(label: "判斷張數",    value: "\(vm.totalCount)", color: Color(hex: "f5a623"))
             } else {
-                statRow(label: "判斷張數", value: "\(vm.totalCount)",   color: Color(hex: "f5a623"))
+                statRow(label: "得分",     value: "\(vm.score)",        color: Color(hex: "f5a623"))
                 statRow(label: "答對張數", value: "\(vm.correctCount)", color: Color(hex: "2ecc71"))
+                statRow(label: "答錯張數", value: "\(vm.wrongCount)",   color: Color(hex: "e74c3c"))
                 if vm.currentMode == .daily {
                     statRow(label: "今日最高", value: "\(vm.dailyBestScore)", color: Color(hex: "a78bfa"))
+                    Text(vm.dailyAttemptsText)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(
+                            vm.canPlayDaily
+                                ? Color(hex: "4fc3f7")
+                                : Color(hex: "e74c3c")
+                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
 
@@ -115,7 +126,14 @@ struct ResultView: View {
     }
 
     private var replayLabel: String {
-        vm.currentMode == .daily ? "再挑戰" : "再玩一次"
+        if vm.currentMode == .daily {
+            return vm.canPlayDaily ? "再挑戰" : "今日挑戰已結束"
+        }
+        return "再玩一次"
+    }
+
+    private var replayDisabled: Bool {
+        vm.currentMode == .daily && !vm.canPlayDaily
     }
 }
 

@@ -24,8 +24,8 @@
 		87660FAE869BAD0EA86F597B /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228E6461433F8CB6C7557184 /* Extensions.swift */; };
 		89193CEB1FB73006347CCFAE /* WinTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E23A477ABFBA25F937C1E3 /* WinTier.swift */; };
 		A1B2C3D4E5F60001A2B3C4D5 /* GameCenterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A600010F1E2D3C /* GameCenterManager.swift */; };
-		A1B2C3D4E5F60003A2B3C4D5 /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A600030F1E2D3C /* HapticsManager.swift */; };
 		A1B2C3D4E5F60002A2B3C4D5 /* StoreKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A600020F1E2D3C /* StoreKitManager.swift */; };
+		A1B2C3D4E5F60003A2B3C4D5 /* HapticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A600030F1E2D3C /* HapticsManager.swift */; };
 		B4D9265F79FA38F6F5896A2A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5EED8A2ED0BAE0359DC140A /* ContentView.swift */; };
 		C0F22DAB796260C8EC4367D7 /* BigWinOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98542AE4E1CEC4D86D7B4C70 /* BigWinOverlayView.swift */; };
 		CC07273B21CBD9658B838C7E /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE31159D1A2356D815A26E7 /* ResultView.swift */; };
@@ -33,6 +33,7 @@
 		D7B3B064F619193F51CF9F26 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317694B8E7C9A3BAFF435DA /* StartView.swift */; };
 		D89FC9EA2FC5727500B94AF5 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */; };
 		D89FC9EC2FC5788300B94AF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D89FC9EB2FC5788300B94AF5 /* PrivacyInfo.xcprivacy */; };
+		D8AA519D2FC5C769009DEAB7 /* 發票對對碰.storekit in Resources */ = {isa = PBXBuildFile; fileRef = D8AA519C2FC5C769009DEAB7 /* 發票對對碰.storekit */; };
 		E75B2D97AC5A9EA0283267CA /* InvoiceSwipeGameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195D13219C4747A7C29359E6 /* InvoiceSwipeGameApp.swift */; };
 		E7C05A36946821E383B52F0C /* GameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C953E003732A1CA0D3D0BFF /* GameViewModel.swift */; };
 /* End PBXBuildFile section */
@@ -54,7 +55,6 @@
 		98542AE4E1CEC4D86D7B4C70 /* BigWinOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BigWinOverlayView.swift; sourceTree = "<group>"; };
 		A4F280E80511348113EC6406 /* Invoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Invoice.swift; sourceTree = "<group>"; };
 		B1D1AF087B7E2EE0EC1037DB /* PrizeChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrizeChecker.swift; sourceTree = "<group>"; };
-		F1E2D3C4B5A600030F1E2D3C /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
 		B5EED8A2ED0BAE0359DC140A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B7FA166B3D2D812B47B67F76 /* InvoiceSwipeGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvoiceSwipeGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D0E23A477ABFBA25F937C1E3 /* WinTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinTier.swift; sourceTree = "<group>"; };
@@ -63,11 +63,13 @@
 		D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		D89FC9EB2FC5788300B94AF5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D89FC9ED2FC58F9200B94AF5 /* InvoiceSwipeGame.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = InvoiceSwipeGame.entitlements; sourceTree = "<group>"; };
+		D8AA519C2FC5C769009DEAB7 /* 發票對對碰.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = "發票對對碰.storekit"; sourceTree = "<group>"; };
 		DC4275F37C711520F972BFA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E0FB5DCC27844D4516E90CD5 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
 		EF40F0C3F12497DDFA1DD940 /* TutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialView.swift; sourceTree = "<group>"; };
 		F1E2D3C4B5A600010F1E2D3C /* GameCenterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterManager.swift; sourceTree = "<group>"; };
 		F1E2D3C4B5A600020F1E2D3C /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A600030F1E2D3C /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
 		FD381624E89BEA467A3F6BF0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,6 +114,7 @@
 		5C999E731352905727541C3C = {
 			isa = PBXGroup;
 			children = (
+				D8AA519C2FC5C769009DEAB7 /* 發票對對碰.storekit */,
 				D4BAA6CF3F4204D0B19A1276 /* InvoiceSwipeGame */,
 				6D159F361021D92BC3E10E55 /* Products */,
 			);
@@ -228,6 +231,7 @@
 				D89FC9EC2FC5788300B94AF5 /* PrivacyInfo.xcprivacy in Resources */,
 				D89FC9EA2FC5727500B94AF5 /* Launch Screen.storyboard in Resources */,
 				30871166680E52097765E99E /* Assets.xcassets in Resources */,
+				D8AA519D2FC5C769009DEAB7 /* 發票對對碰.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,7 +323,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = InvoiceSwipeGame/InvoiceSwipeGame.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 3YS47ACJA4;
 				INFOPLIST_FILE = InvoiceSwipeGame/Info.plist;
@@ -346,7 +350,7 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = InvoiceSwipeGame/InvoiceSwipeGame.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 3YS47ACJA4;

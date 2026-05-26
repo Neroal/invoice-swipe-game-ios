@@ -24,6 +24,7 @@ final class GameViewModel: ObservableObject {
     @Published var timeLeft:     Int = 30
     @Published var totalCount:   Int = 0
     @Published var correctCount: Int = 0
+    @Published var scoreBonus:   Int = 0   // 計時模式大獎額外加分累計
     // Endless
     @Published var lives:         Int = 3
     @Published var currentStreak: Int = 0
@@ -72,6 +73,7 @@ final class GameViewModel: ObservableObject {
 
     // MARK: – Mode selection
     func selectMode(_ mode: GameMode) {
+        if mode == .daily, !daily.canPlay { return }
         currentMode = mode
         if !UserDefaults.standard.bool(forKey: "tutorial_seen") {
             showTutorial = true
@@ -92,6 +94,7 @@ final class GameViewModel: ObservableObject {
         timeLeft      = 30
         totalCount    = 0
         correctCount  = 0
+        scoreBonus    = 0
         lives         = 3
         currentStreak = 0
         bestStreak    = 0
@@ -230,15 +233,22 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     private func deliverFeedback(correct: Bool, card: Invoice) {
         if correct, let tier = card.winTier, tier.isBigWin {
-            triggerBigWin(tier)
+            if currentMode.hasTimer {
+                // 計時模式：強化 mini badge + 加分，不打斷遊戲流程
+                triggerBigWinMini(tier)
+            } else {
+                // 無限模式：保留全螢幕 overlay
+                triggerBigWin(tier)
+            }
             return
         }
         if correct, let tier = card.winTier {
             // Small win badge
+            scoreBonus += tier.bonusPoints
             sound.playCoin()
             haptics.coin()
             miniBadgeTier = tier
-            miniBadgeText = "\(tier.rawValue)  \(tier.amountString)"
+            miniBadgeText = "\(tier.rawValue)  \(tier.scoreText)"
             withAnimation(.spring(dampingFraction: 0.6)) { showMiniBadge = true }
             Task {
                 try? await Task.sleep(nanoseconds: 900_000_000)
@@ -263,6 +273,25 @@ final class GameViewModel: ObservableObject {
         Task {
             try? await Task.sleep(nanoseconds: 350_000_000)
             withAnimation { showFeedback = false }
+        }
+    }
+
+    /// 計時模式大獎處理：強化 mini badge + 加分，不蓋住畫面
+    private func triggerBigWinMini(_ tier: WinTier) {
+        scoreBonus += tier.bonusPoints
+        switch tier {
+        case .special: sound.playSpecialPrize()
+        case .grand:   sound.playGrandPrize()
+        case .first:   sound.playFirstPrize()
+        default: break
+        }
+        haptics.bigWin(tier: tier)
+        miniBadgeTier = tier
+        miniBadgeText = "★ \(tier.rawValue)  \(tier.scoreText)"
+        withAnimation(.spring(dampingFraction: 0.6)) { showMiniBadge = true }
+        Task {
+            try? await Task.sleep(nanoseconds: 1_400_000_000)
+            withAnimation { showMiniBadge = false }
         }
     }
 
@@ -294,7 +323,8 @@ final class GameViewModel: ObservableObject {
         }
 
         if currentMode == .daily {
-            isNewDailyRecord = daily.tryUpdateBest(totalCount)
+            daily.recordAttempt()
+            isNewDailyRecord = daily.tryUpdateBest(score)
         }
         dailyBestScore = daily.bestScore()
         phase = .result
@@ -307,11 +337,11 @@ final class GameViewModel: ObservableObject {
         let gc = GameCenterManager.shared
         switch currentMode {
         case .normal:
-            gc.submitScore(totalCount,   to: .normal)
+            gc.submitScore(score,      to: .normal)
         case .daily:
-            gc.submitScore(totalCount,   to: .daily)
+            gc.submitScore(score,      to: .daily)
         case .endless:
-            gc.submitScore(bestStreak,   to: .endless)
+            gc.submitScore(bestStreak * 1000 + totalCount, to: .endless)
         }
     }
 
@@ -331,7 +361,15 @@ final class GameViewModel: ObservableObject {
     }
 
     // MARK: – Computed helpers
-    var dailyBestText: String { daily.bestDisplayText }
+    var dailyBestText: String       { daily.bestDisplayText    }
+    var dailyAttemptsText: String   { daily.attemptsDisplayText }
+    var dailyRemainingAttempts: Int { daily.remainingAttempts  }
+    var canPlayDaily: Bool          { daily.canPlay            }
+
+    var wrongCount: Int { totalCount - correctCount }
+
+    /// 加權分數：答對 ×2，答錯 ×3，大獎額外加分（下限 0）
+    var score: Int { max(0, correctCount * 2 - wrongCount * 3 + scoreBonus) }
 
     var accuracy: Int {
         totalCount > 0 ? Int(Double(correctCount) / Double(totalCount) * 100) : 0

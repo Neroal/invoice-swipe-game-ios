@@ -21,6 +21,7 @@ struct ConfettiView: View {
                 particles = (0..<count).map { _ in
                     ConfettiParticle(
                         x: CGFloat.random(in: 0...geo.size.width),
+                        screenHeight: geo.size.height,
                         color: [
                             Color(hex: "ff4444"), Color(hex: "f5a623"),
                             Color(hex: "2ecc71"), Color(hex: "3498db"),
@@ -41,6 +42,7 @@ struct ConfettiView: View {
 struct ConfettiParticle: Identifiable {
     let id = UUID()
     let x: CGFloat
+    let screenHeight: CGFloat
     let color: Color
     let size: CGFloat
     let duration: Double
@@ -56,7 +58,7 @@ struct ConfettiPieceView: View {
             .fill(particle.color)
             .frame(width: particle.size, height: particle.size)
             .cornerRadius(1)
-            .position(x: particle.x, y: fallen ? UIScreen.main.bounds.height + 20 : -10)
+            .position(x: particle.x, y: fallen ? particle.screenHeight + 20 : -10)
             .rotationEffect(.degrees(fallen ? 720 : 0))
             .opacity(fallen ? 0 : 1)
             .onAppear {

@@ -2,17 +2,19 @@ import SwiftUI
 
 struct GameView: View {
     @EnvironmentObject var vm: GameViewModel
-    private let cardW: CGFloat = min(300, UIScreen.main.bounds.width * 0.88)
     private let cardH: CGFloat = 200
 
     var body: some View {
-        ZStack {
-            Color(hex: "0f0f1a").ignoresSafeArea()
+        GeometryReader { geo in
+            let cardW = min(300, geo.size.width * 0.88)
+            ZStack {
+                Color(hex: "0f0f1a").ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                prizePanel
-                feedbackBar
-                cardArea
+                VStack(spacing: 0) {
+                    prizePanel
+                    feedbackBar
+                    cardArea(cardW: cardW, screenWidth: geo.size.width)
+                }
             }
         }
     }
@@ -51,7 +53,8 @@ struct GameView: View {
 
     // MARK: – Prize panel
     private var prizePanel: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 7) {
+            // 期別 + HUD
             HStack {
                 Text(vm.currentPeriodLabel)
                     .font(.system(size: 12))
@@ -61,20 +64,67 @@ struct GameView: View {
                 hudRow
             }
 
-            HStack(spacing: 6) {
-                prizePill(name: "特別獎", num: vm.prizes.special, highlight: false)
-                prizePill(name: "特獎",   num: vm.prizes.grand,   highlight: false)
-                prizePill(name: "頭獎",   num: vm.prizes.first,   highlight: true)
-            }
+            // 特別獎
+            prizeRowSingle(label: "特別獎", number: vm.prizes.special)
 
-            Text("末 3 碼  \(vm.prizes.sixthSuffix)  中六獎")
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.white.opacity(0.35))
+            // 特獎
+            prizeRowSingle(label: "特獎", number: vm.prizes.grand)
+
+            // 頭獎 × 3（末 3 碼紅字）
+            prizeRowTriple(numbers: vm.prizes.firsts)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.vertical, 12)
         .background(Color(hex: "1a1a2e"))
         .overlay(Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.06)), alignment: .bottom)
+    }
+
+    private func prizeRowSingle(label: String, number: String) -> some View {
+        ZStack {
+            Text(number)
+                .font(.system(size: 18, weight: .black, design: .monospaced))
+                .foregroundColor(.white)
+                .tracking(1)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .center)
+            HStack {
+                Text(label)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.45))
+                    .tracking(1)
+                Spacer()
+            }
+        }
+    }
+
+    private func prizeRowTriple(numbers: [String]) -> some View {
+        HStack(spacing: 0) {
+            Text("頭獎")
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.45))
+                .tracking(1)
+                .frame(width: 46, alignment: .leading)
+            HStack(spacing: 4) {
+                ForEach(Array(numbers.enumerated()), id: \.offset) { _, number in
+                    coloredFirstNumber(number)
+                        .frame(maxWidth: .infinity)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                }
+            }
+        }
+    }
+
+    private func coloredFirstNumber(_ number: String) -> Text {
+        let prefix = String(number.prefix(5))
+        let suffix = String(number.suffix(3))
+        return (
+            Text(prefix).foregroundColor(.white) +
+            Text(suffix).foregroundColor(Color(hex: "ff6b6b"))
+        )
+        .font(.system(size: 16, weight: .black, design: .monospaced))
+        .tracking(0.5)
     }
 
     @ViewBuilder
@@ -83,14 +133,13 @@ struct GameView: View {
             HStack(spacing: 6) {
                 livesView
                 hudChip(label: "連續", value: "\(vm.currentStreak)", color: Color(hex: "a78bfa"))
-                hudChip(label: "張數", value: "\(vm.totalCount)",    color: .white)
+                hudChip(label: "最高", value: "\(vm.bestStreak)",    color: Color(hex: "f5a623"))
             }
         } else {
             HStack(spacing: 6) {
-                hudChip(label: "張數", value: "\(vm.totalCount)",   color: .white)
                 hudChip(label: "時間", value: "\(vm.timeLeft)",
                         color: vm.timeLeft <= 5 ? Color(hex: "e94560") : Color(hex: "f5a623"))
-                hudChip(label: "答對", value: "\(vm.correctCount)", color: Color(hex: "2ecc71"))
+                hudChip(label: "分數", value: "\(vm.score)",         color: Color(hex: "2ecc71"))
             }
         }
     }
@@ -110,7 +159,7 @@ struct GameView: View {
     }
 
     // MARK: – Card area
-    private var cardArea: some View {
+    private func cardArea(cardW: CGFloat, screenWidth: CGFloat) -> some View {
         ZStack {
             // Side indicators
             HStack {
@@ -124,7 +173,7 @@ struct GameView: View {
             ZStack {
                 ForEach(Array(vm.cards.prefix(3).enumerated().reversed()), id: \.element.id) { idx, card in
                     let isTop = idx == 0
-                    cardView(card: card, index: idx, isTop: isTop)
+                    cardView(card: card, index: idx, isTop: isTop, cardW: cardW)
                 }
                 // Flying card overlay：飛出動畫獨立執行，不卡輸入
                 if let flying = vm.flyingCard, let dir = vm.flyingDir {
@@ -133,7 +182,8 @@ struct GameView: View {
                         direction:   dir,
                         startOffset: vm.flyingStartOffset,
                         cardW:       cardW,
-                        cardH:       cardH
+                        cardH:       cardH,
+                        screenWidth: screenWidth
                     )
                 }
             }
@@ -147,7 +197,7 @@ struct GameView: View {
         }
     }
 
-    private func cardView(card: Invoice, index: Int, isTop: Bool) -> some View {
+    private func cardView(card: Invoice, index: Int, isTop: Bool, cardW: CGFloat) -> some View {
         // 所有卡片在同一個位置，只用極淡的 brightness 暗示還有下一張
         // 這樣 index 改變時不會有任何位移動畫
         return InvoiceCardView(
@@ -229,34 +279,19 @@ struct GameView: View {
     }
 
     // MARK: – Helpers
-    private func prizePill(name: String, num: String, highlight: Bool) -> some View {
-        VStack(spacing: 3) {
-            Text(name).font(.system(size: 11)).foregroundColor(.white.opacity(0.5)).tracking(1)
-            Text(num)
-                .font(.system(size: 17, weight: .black, design: .monospaced))
-                .foregroundColor(highlight ? Color(hex: "ff6b6b") : .white)
-                .tracking(1.5)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-        }
-        .padding(.horizontal, 8).padding(.vertical, 7)
-        .frame(maxWidth: .infinity)
-        .background(highlight ? Color(hex: "cc2200").opacity(0.08) : Color.white.opacity(0.04))
-        .overlay(RoundedRectangle(cornerRadius: 6)
-            .stroke(highlight ? Color(hex: "cc2200").opacity(0.3) : Color.white.opacity(0.08), lineWidth: 1))
-        .cornerRadius(6)
-    }
-
     private func hudChip(label: String, value: String, color: Color) -> some View {
         VStack(spacing: 1) {
             Text(label).font(.system(size: 9)).foregroundColor(.white.opacity(0.35)).tracking(2)
             Text(value)
                 .font(.system(size: 22, weight: .black, design: .monospaced))
                 .foregroundColor(color)
+                .lineLimit(1)
+                .fixedSize()
         }
         .padding(.horizontal, 10).padding(.vertical, 4)
         .background(Color.white.opacity(0.06))
         .cornerRadius(6)
+        .fixedSize()
     }
 }
 
@@ -269,6 +304,7 @@ private struct FlyingCardView: View {
     let startOffset: CGSize
     let cardW:       CGFloat
     let cardH:       CGFloat
+    let screenWidth: CGFloat
 
     @State private var offset:   CGSize = .zero
     @State private var rotation: Double = 0
@@ -291,8 +327,8 @@ private struct FlyingCardView: View {
                 rotation = Double(startOffset.width) * 0.06
 
                 let targetX = direction == .right
-                    ? UIScreen.main.bounds.width * 1.5
-                    : -UIScreen.main.bounds.width * 1.5
+                    ? screenWidth * 1.5
+                    : -screenWidth * 1.5
 
                 withAnimation(.easeOut(duration: 0.30)) {
                     offset   = CGSize(width: targetX, height: startOffset.height)
