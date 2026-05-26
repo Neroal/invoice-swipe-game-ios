@@ -148,22 +148,19 @@ struct GameView: View {
     }
 
     private func cardView(card: Invoice, index: Int, isTop: Bool) -> some View {
-        let scaleDown = 1.0 - Double(index) * 0.05
-        let pushDown  = CGFloat(index) * 9.0
-
+        // 所有卡片在同一個位置，只用極淡的 brightness 暗示還有下一張
+        // 這樣 index 改變時不會有任何位移動畫
         return InvoiceCardView(
             invoice: card,
             dragOffset: isTop ? vm.dragOffset : .zero,
             isTop: isTop
         )
         .frame(width: cardW, height: cardH)
-        .scaleEffect(isTop ? 1.0 : scaleDown)
-        .offset(y: isTop ? 0 : pushDown)
-        .brightness(isTop ? 0 : -0.18 * Double(index))
+        .brightness(isTop ? 0 : -0.08 * Double(index))
         .offset(isTop ? vm.dragOffset : .zero)
         .rotationEffect(.degrees(isTop ? Double(vm.dragOffset.width) * 0.06 : 0))
-        // FlyingCardView 接管後立刻隱藏 top card，避免重疊
-        .opacity(isTop && vm.flyingCard != nil ? 0 : 1)
+        // 只隱藏「正在飛走的那張」，新 top card 在 cards.removeFirst() 後立刻顯示
+        .opacity(card.id == vm.flyingCard?.id ? 0 : 1)
         .animation(.interactiveSpring(), value: vm.dragOffset)
         .zIndex(Double(10 - index))
         .gesture(isTop ? dragGesture : nil)
