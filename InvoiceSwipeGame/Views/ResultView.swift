@@ -1,0 +1,140 @@
+import SwiftUI
+
+struct ResultView: View {
+    @EnvironmentObject var vm: GameViewModel
+
+    var body: some View {
+        ZStack {
+            Color(hex: "0f0f1a").ignoresSafeArea()
+
+            VStack(spacing: 20) {
+                // Title
+                Text(titleText)
+                    .font(.system(size: 52, weight: .black))
+                    .foregroundColor(.white)
+                    .shadow(color: Color(hex: "f5a623"), radius: 0, x: 3, y: 3)
+                    .tracking(4)
+
+                // New record banner
+                if vm.isNewDailyRecord {
+                    HStack(spacing: 6) {
+                        Image(systemName: "trophy.fill")
+                        Text("今日新紀錄！")
+                    }
+                        .font(.system(size: 13, weight: .black))
+                        .tracking(3)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 22).padding(.vertical, 7)
+                        .background(
+                            LinearGradient(colors: [Color(hex: "f5a623"), Color(hex: "e94560")],
+                                           startPoint: .leading, endPoint: .trailing)
+                        )
+                        .cornerRadius(20)
+                        .transition(.scale.combined(with: .opacity))
+                }
+
+                // Stats card
+                statsCard
+
+                // Buttons
+                VStack(spacing: 10) {
+                    Button { vm.replayCurrentMode() } label: {
+                        Text(replayLabel)
+                            .font(.system(size: 15, weight: .black))
+                            .tracking(3)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity).padding(.vertical, 15)
+                            .background(Color(hex: "e94560"))
+                            .cornerRadius(10)
+                            .shadow(color: Color(hex: "a0001e"), radius: 0, x: 0, y: 4)
+                    }
+                    .hapticTap(style: .medium)
+                    Button { vm.goHome() } label: {
+                        Text("回主選單")
+                            .font(.system(size: 15, weight: .bold))
+                            .tracking(2)
+                            .foregroundColor(.white.opacity(0.45))
+                            .frame(maxWidth: .infinity).padding(.vertical, 12)
+                            .overlay(RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    }
+                    .hapticTap()
+                }
+                .padding(.horizontal, 28)
+            }
+        }
+    }
+
+    // MARK: – Stats card
+    private var statsCard: some View {
+        VStack(spacing: 18) {
+            if vm.currentMode == .endless {
+                statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color(hex: "a78bfa"))
+                statRow(label: "判斷張數",    value: "\(vm.totalCount)",   color: Color(hex: "f5a623"))
+            } else {
+                statRow(label: "判斷張數", value: "\(vm.totalCount)",   color: Color(hex: "f5a623"))
+                statRow(label: "答對張數", value: "\(vm.correctCount)", color: Color(hex: "2ecc71"))
+                if vm.currentMode == .daily {
+                    statRow(label: "今日最高", value: "\(vm.dailyBestScore)", color: Color(hex: "a78bfa"))
+                }
+            }
+
+            // Accuracy bar
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("正確率").font(.system(size: 12)).foregroundColor(.white.opacity(0.5)).tracking(2)
+                    Spacer()
+                    Text("\(vm.accuracy)%").font(.system(size: 32, weight: .black)).foregroundColor(.white)
+                }
+                AccuracyBar(accuracy: vm.accuracy)
+            }
+        }
+        .padding(28)
+        .background(Color.white.opacity(0.04))
+        .overlay(RoundedRectangle(cornerRadius: 14)
+            .stroke(Color.white.opacity(0.08), lineWidth: 1))
+        .cornerRadius(14)
+        .padding(.horizontal, 24)
+    }
+
+    private func statRow(label: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.system(size: 12)).foregroundColor(.white.opacity(0.5)).tracking(2)
+            Text(value).font(.system(size: 48, weight: .black)).foregroundColor(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: – Helpers
+    private var titleText: String {
+        switch vm.currentMode {
+        case .normal:  return "時間到！"
+        case .daily:   return "挑戰完成！"
+        case .endless: return vm.lives <= 0 ? "遊戲結束！" : "厲害！"
+        }
+    }
+
+    private var replayLabel: String {
+        vm.currentMode == .daily ? "再挑戰" : "再玩一次"
+    }
+}
+
+struct AccuracyBar: View {
+    let accuracy: Int
+    @State private var filled = false
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 3).fill(Color.white.opacity(0.08))
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(LinearGradient(colors: [Color(hex: "e94560"), Color(hex: "f5a623")],
+                                         startPoint: .leading, endPoint: .trailing))
+                    .frame(width: filled ? geo.size.width * CGFloat(accuracy) / 100 : 0)
+                    .animation(.easeOut(duration: 1.0).delay(0.15), value: filled)
+            }
+        }
+        .frame(height: 5)
+        .onAppear { filled = true }
+    }
+}

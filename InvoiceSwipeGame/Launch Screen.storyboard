@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13142" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12042"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <!-- 主標題：發票對對碰 -->
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left"
+                                   horizontalHuggingPriority="251" verticalHuggingPriority="251"
+                                   text="發票對對碰"
+                                   textAlignment="center"
+                                   lineBreakMode="middleTruncation"
+                                   baselineAdjustment="alignBaselines"
+                                   adjustsFontSizeToFit="NO"
+                                   translatesAutoresizingMaskIntoConstraints="NO"
+                                   id="title-lbl">
+                                <rect key="frame" x="20" y="290" width="335" height="60"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="52"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <!-- 副標題：英文 -->
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left"
+                                   horizontalHuggingPriority="251" verticalHuggingPriority="251"
+                                   text="INVOICE SWIPE CHALLENGE"
+                                   textAlignment="center"
+                                   lineBreakMode="middleTruncation"
+                                   baselineAdjustment="alignBaselines"
+                                   adjustsFontSizeToFit="NO"
+                                   translatesAutoresizingMaskIntoConstraints="NO"
+                                   id="sub-lbl">
+                                <rect key="frame" x="20" y="358" width="335" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="0.35" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <!-- 背景色 #0f0f1a -->
+                        <color key="backgroundColor"
+                               red="0.05882352941"
+                               green="0.05882352941"
+                               blue="0.10196078431"
+                               alpha="1"
+                               colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <!-- 主標題：水平置中，垂直略偏上 -->
+                            <constraint firstItem="title-lbl" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cx-title"/>
+                            <constraint firstItem="title-lbl" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" constant="-30" id="cy-title"/>
+                            <constraint firstItem="title-lbl" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="l-title"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="title-lbl" secondAttribute="trailing" constant="20" id="r-title"/>
+                            <!-- 副標題：緊接主標題下方 8pt -->
+                            <constraint firstItem="sub-lbl" firstAttribute="top" secondItem="title-lbl" secondAttribute="bottom" constant="8" id="top-sub"/>
+                            <constraint firstItem="sub-lbl" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cx-sub"/>
+                            <constraint firstItem="sub-lbl" firstAttribute="leading" secondItem="Bcu-3y-fUS" secondAttribute="leading" constant="20" id="l-sub"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="trailing" secondItem="sub-lbl" secondAttribute="trailing" constant="20" id="r-sub"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="53" y="375"/>
+        </scene>
+    </scenes>
+</document>
