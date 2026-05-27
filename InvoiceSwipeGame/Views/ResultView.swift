@@ -54,10 +54,10 @@ struct ResultView: View {
                     .disabled(replayDisabled)
                     .hapticTap(style: .medium)
                     Button {
-                        // 累積局數達門檻時觸發 App Store 評分請求
-                        // Apple 原生限制每年最多顯示 3 次，無需額外處理重複邏輯
+                        // 累積局數 >= 5 且從未觸發過，點回主選單時跳出評分請求
                         if vm.hasReachedReviewThreshold {
                             requestReview()
+                            vm.markReviewRequested()
                         }
                         vm.goHome()
                     } label: {

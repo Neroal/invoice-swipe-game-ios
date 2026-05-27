@@ -72,17 +72,24 @@ final class GameViewModel: ObservableObject {
     private let daily      = DailyChallengeManager()
 
     // MARK: – Review Request
-    private let gamesPlayedKey = "total_games_played"
-    private let reviewThreshold = 5
+    private let gamesPlayedKey    = "total_games_played"
+    private let reviewRequestedKey = "review_requested"
+    private let reviewThreshold   = 5
 
     /// 累積遊玩局數（跨模式）
     var totalGamesPlayed: Int {
         UserDefaults.standard.integer(forKey: gamesPlayedKey)
     }
 
-    /// 是否剛好在評分請求門檻局數（精準觸發一次，不重複打擾）
+    /// 是否達到評分請求門檻且尚未觸發過
     var hasReachedReviewThreshold: Bool {
-        totalGamesPlayed == reviewThreshold
+        let alreadyRequested = UserDefaults.standard.bool(forKey: reviewRequestedKey)
+        return totalGamesPlayed >= reviewThreshold && !alreadyRequested
+    }
+
+    /// 標記已觸發評分請求，之後不再觸發
+    func markReviewRequested() {
+        UserDefaults.standard.set(true, forKey: reviewRequestedKey)
     }
 
     private func incrementGamesPlayed() {
