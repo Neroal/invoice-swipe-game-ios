@@ -19,8 +19,14 @@ final class SoundManager {
         engine.attach(mixer)
         engine.connect(mixer, to: engine.mainMixerNode,
                        format: AVAudioFormat(standardFormatWithSampleRate: 44100, channels: 1))
-        try? engine.start()
-        isSetUp = true
+        do {
+            try engine.start()
+            isSetUp = true   // 只有在成功後才標記，失敗時下次 play() 仍可重試
+        } catch {
+            // 常見原因：來電中、其他 app 佔用 AVAudioSession（Spotify 等）
+            // 不設 isSetUp = true，讓下一次 play() 再嘗試啟動
+            print("[SoundManager] 引擎啟動失敗，將於下次播放時重試: \(error.localizedDescription)")
+        }
     }
 
     // MARK: – Tone generation
