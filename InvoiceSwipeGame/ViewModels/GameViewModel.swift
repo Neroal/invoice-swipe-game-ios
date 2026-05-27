@@ -41,6 +41,8 @@ final class GameViewModel: ObservableObject {
     @Published var flyingCard: Invoice?       = nil
     @Published var flyingDir:  SwipeDirection? = nil
     @Published var flyingStartOffset: CGSize  = .zero
+    /// 追蹤目前飛行中的卡片 ID，Stage 2 Task 用於確認是否仍為同一張卡
+    private var flyingCardID: UUID?            = nil
 
     // MARK: – Feedback
     @Published var feedbackText     = ""
@@ -139,6 +141,7 @@ final class GameViewModel: ObservableObject {
         flyingCard        = nil
         flyingDir         = nil
         flyingStartOffset = .zero
+        flyingCardID      = nil
 
         rng = currentMode == .daily
             ? SeededRNG(seed: SeededRNG.dailySeed())
@@ -205,6 +208,7 @@ final class GameViewModel: ObservableObject {
         flyingStartOffset = dragOffset
         flyingCard        = card
         flyingDir         = dir
+        flyingCardID      = card.id
 
         totalCount += 1
         if correct {
@@ -240,11 +244,15 @@ final class GameViewModel: ObservableObject {
         }
 
         // Stage 2（340ms）：清除 flying overlay（卡片已飛離螢幕）
+        // 比對 card.id 確保不會清除下一張牌的飛行動畫
+        let swipedCardID = card.id
         Task {
             try? await Task.sleep(nanoseconds: 340_000_000)
+            guard flyingCardID == swipedCardID else { return }
             flyingCard        = nil
             flyingDir         = nil
             flyingStartOffset = .zero
+            flyingCardID      = nil
         }
     }
 
@@ -398,6 +406,7 @@ final class GameViewModel: ObservableObject {
         flyingCard        = nil
         flyingDir         = nil
         flyingStartOffset = .zero
+        flyingCardID      = nil
         phase = .start
     }
 
