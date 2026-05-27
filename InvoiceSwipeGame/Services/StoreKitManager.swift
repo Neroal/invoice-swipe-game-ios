@@ -114,16 +114,25 @@ final class StoreKitManager: ObservableObject {
 
     /// 啟動時重新驗證現有權益（防止解除安裝後重裝遺失）
     func refreshPurchaseStatus() async {
-        var found = false
+        var found       = false
+        var hasRevoked  = false   // 明確收到撤銷記錄才降級
+
         for await result in Transaction.currentEntitlements {
             guard let transaction = try? checkVerified(result) else { continue }
-            if transaction.productID == coffeeProductID && transaction.revocationDate == nil {
+            guard transaction.productID == coffeeProductID else { continue }
+
+            if transaction.revocationDate != nil {
+                // Apple 明確標記撤銷（退款）→ 降級
+                hasRevoked = true
+            } else {
                 found = true
                 await updatePurchased(transaction)
             }
         }
-        // 若 currentEntitlements 找不到有效交易，代表已退款或從未購買，同步清除快取
-        if !found {
+
+        // 只有在收到明確撤銷紀錄時才清除快取，
+        // currentEntitlements 返回空序列（StoreKit 初始化中、無網路）時保留現有狀態。
+        if hasRevoked && !found {
             isPurchased = false
             UserDefaults.standard.set(false, forKey: "coffee_supporter")
         }
