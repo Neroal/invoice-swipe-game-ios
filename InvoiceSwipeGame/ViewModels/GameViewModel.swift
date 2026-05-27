@@ -71,6 +71,25 @@ final class GameViewModel: ObservableObject {
     let haptics            = HapticsManager()
     private let daily      = DailyChallengeManager()
 
+    // MARK: – Review Request
+    private let gamesPlayedKey = "total_games_played"
+    private let reviewThreshold = 5
+
+    /// 累積遊玩局數（跨模式）
+    var totalGamesPlayed: Int {
+        UserDefaults.standard.integer(forKey: gamesPlayedKey)
+    }
+
+    /// 是否已達到評分請求門檻
+    var hasReachedReviewThreshold: Bool {
+        totalGamesPlayed >= reviewThreshold
+    }
+
+    private func incrementGamesPlayed() {
+        let newCount = totalGamesPlayed + 1
+        UserDefaults.standard.set(newCount, forKey: gamesPlayedKey)
+    }
+
     // MARK: – Mode selection
     func selectMode(_ mode: GameMode) {
         if mode == .daily, !daily.canPlay { return }
@@ -327,6 +346,10 @@ final class GameViewModel: ObservableObject {
             isNewDailyRecord = daily.tryUpdateBest(score)
         }
         dailyBestScore = daily.bestScore()
+
+        // 累積局數 +1（任一模式皆計算）
+        incrementGamesPlayed()
+
         phase = .result
 
         // 上傳 Game Center 分數

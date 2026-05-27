@@ -1,7 +1,9 @@
 import SwiftUI
+import StoreKit
 
 struct ResultView: View {
     @EnvironmentObject var vm: GameViewModel
+    @Environment(\.requestReview) private var requestReview
 
     var body: some View {
         ZStack {
@@ -51,7 +53,14 @@ struct ResultView: View {
                     }
                     .disabled(replayDisabled)
                     .hapticTap(style: .medium)
-                    Button { vm.goHome() } label: {
+                    Button {
+                        // 累積局數達門檻時觸發 App Store 評分請求
+                        // Apple 原生限制每年最多顯示 3 次，無需額外處理重複邏輯
+                        if vm.hasReachedReviewThreshold {
+                            requestReview()
+                        }
+                        vm.goHome()
+                    } label: {
                         Text("回主選單")
                             .font(.system(size: 15, weight: .bold))
                             .tracking(2)
