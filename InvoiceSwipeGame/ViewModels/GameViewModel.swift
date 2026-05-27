@@ -67,6 +67,7 @@ final class GameViewModel: ObservableObject {
     private var rng        = SeededRNG(seed: 0)
     private var timerSub:  AnyCancellable?
     private var countdownTask: Task<Void, Never>?
+    private var lifeLostTask:  Task<Void, Never>?
     let sound              = SoundManager()
     let haptics            = HapticsManager()
     private let daily      = DailyChallengeManager()
@@ -116,6 +117,10 @@ final class GameViewModel: ObservableObject {
 
     // MARK: – Game flow
     func beginGame() {
+        // Cancel any pending delayed endGame from the previous round
+        lifeLostTask?.cancel()
+        lifeLostTask = nil
+
         // Reset state
         timeLeft      = 30
         totalCount    = 0
@@ -249,8 +254,9 @@ final class GameViewModel: ObservableObject {
         haptics.lifeLost()
         if lives <= 0 {
             isGameOver = true
-            Task {
+            lifeLostTask = Task {
                 try? await Task.sleep(nanoseconds: 420_000_000)
+                guard !Task.isCancelled else { return }
                 endGame()
             }
         }
@@ -380,6 +386,8 @@ final class GameViewModel: ObservableObject {
     func goHome() {
         timerSub?.cancel()
         countdownTask?.cancel()
+        lifeLostTask?.cancel()
+        lifeLostTask = nil
         showCountdown     = false
         showFeedback      = false
         showMiniBadge     = false
