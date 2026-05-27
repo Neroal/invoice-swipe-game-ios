@@ -341,6 +341,9 @@ final class GameViewModel: ObservableObject {
 
     // MARK: – End game
     func endGame() {
+        // 防重入：只有遊戲進行中或倒數中才允許結束
+        guard phase == .playing || phase == .countdown else { return }
+
         timerSub?.cancel()
         // 無限模式由 playLifeLost() 已給過音效，不重複播放「時間到」
         if currentMode.hasTimer {
