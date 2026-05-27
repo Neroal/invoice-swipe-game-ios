@@ -80,9 +80,9 @@ final class GameViewModel: ObservableObject {
         UserDefaults.standard.integer(forKey: gamesPlayedKey)
     }
 
-    /// 是否已達到評分請求門檻
+    /// 是否剛好在評分請求門檻局數（精準觸發一次，不重複打擾）
     var hasReachedReviewThreshold: Bool {
-        totalGamesPlayed >= reviewThreshold
+        totalGamesPlayed == reviewThreshold
     }
 
     private func incrementGamesPlayed() {
