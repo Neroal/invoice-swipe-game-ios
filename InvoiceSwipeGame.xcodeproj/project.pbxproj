@@ -31,6 +31,8 @@
 		CC07273B21CBD9658B838C7E /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE31159D1A2356D815A26E7 /* ResultView.swift */; };
 		CC8E7B9B8D96C7947D9663CF /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C4EF1C6C9E0D737780D020 /* GameView.swift */; };
 		D7B3B064F619193F51CF9F26 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317694B8E7C9A3BAFF435DA /* StartView.swift */; };
+		D812BFAE2FC97A4000AA595B /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D812BFAD2FC97A4000AA595B /* LeaderboardView.swift */; };
+		D812BFB02FC97A4D00AA595B /* LeaderboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D812BFAF2FC97A4D00AA595B /* LeaderboardViewModel.swift */; };
 		D89FC9EA2FC5727500B94AF5 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */; };
 		D89FC9EC2FC5788300B94AF5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D89FC9EB2FC5788300B94AF5 /* PrivacyInfo.xcprivacy */; };
 		D8AA519D2FC5C769009DEAB7 /* 發票對對碰.storekit in Resources */ = {isa = PBXBuildFile; fileRef = D8AA519C2FC5C769009DEAB7 /* 發票對對碰.storekit */; };
@@ -60,6 +62,8 @@
 		D0E23A477ABFBA25F937C1E3 /* WinTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinTier.swift; sourceTree = "<group>"; };
 		D317694B8E7C9A3BAFF435DA /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
 		D69FD997C8D117ED08501B56 /* DailyChallengeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyChallengeManager.swift; sourceTree = "<group>"; };
+		D812BFAD2FC97A4000AA595B /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
+		D812BFAF2FC97A4D00AA595B /* LeaderboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewModel.swift; sourceTree = "<group>"; };
 		D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		D89FC9EB2FC5788300B94AF5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D89FC9ED2FC58F9200B94AF5 /* InvoiceSwipeGame.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = InvoiceSwipeGame.entitlements; sourceTree = "<group>"; };
@@ -98,6 +102,7 @@
 		27E84255ED83F111C48120AC /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D812BFAD2FC97A4000AA595B /* LeaderboardView.swift */,
 				98542AE4E1CEC4D86D7B4C70 /* BigWinOverlayView.swift */,
 				E0FB5DCC27844D4516E90CD5 /* ConfettiView.swift */,
 				50B87C9FA113A9224314B0AD /* CountdownView.swift */,
@@ -123,6 +128,7 @@
 		5FBD1E110D62A624DCC6D812 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				D812BFAF2FC97A4D00AA595B /* LeaderboardViewModel.swift */,
 				7C953E003732A1CA0D3D0BFF /* GameViewModel.swift */,
 			);
 			path = ViewModels;
@@ -254,6 +260,7 @@
 				A1B2C3D4E5F60001A2B3C4D5 /* GameCenterManager.swift in Sources */,
 				A1B2C3D4E5F60003A2B3C4D5 /* HapticsManager.swift in Sources */,
 				5C4C7F4ED123C5A687007D37 /* PrizeChecker.swift in Sources */,
+				D812BFAE2FC97A4000AA595B /* LeaderboardView.swift in Sources */,
 				2FEB4B79A460E5A39E948B23 /* SeededRNG.swift in Sources */,
 				243BFBFA1D504659261F6577 /* SoundManager.swift in Sources */,
 				A1B2C3D4E5F60002A2B3C4D5 /* StoreKitManager.swift in Sources */,
@@ -263,6 +270,7 @@
 				812B284402FE65E734AB17C2 /* CountdownView.swift in Sources */,
 				CC8E7B9B8D96C7947D9663CF /* GameView.swift in Sources */,
 				423D6D32C2353C08E8E8B94B /* InvoiceCardView.swift in Sources */,
+				D812BFB02FC97A4D00AA595B /* LeaderboardViewModel.swift in Sources */,
 				CC07273B21CBD9658B838C7E /* ResultView.swift in Sources */,
 				54F1B4987E023E0D67B3BB55 /* SettingsView.swift in Sources */,
 				D7B3B064F619193F51CF9F26 /* StartView.swift in Sources */,

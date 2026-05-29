@@ -5,6 +5,8 @@ struct ResultView: View {
     @EnvironmentObject var vm: GameViewModel
     @Environment(\.requestReview) private var requestReview
     @State private var formulaPhase = 0
+    @State private var rankResult: (local: LeaderboardEntry?, above: LeaderboardEntry?, below: LeaderboardEntry?) = (nil, nil, nil)
+    @State private var rankLoaded = false
 
     var body: some View {
         ZStack {
@@ -51,6 +53,14 @@ struct ResultView: View {
                                 try? await Task.sleep(nanoseconds: 700_000_000)
                                 withAnimation(.easeIn(duration: 0.3)) { formulaPhase = 4 }
                             }
+                        }
+                    }
+                    .task {
+                        let result = await GameCenterManager.shared
+                            .loadResultRankAndNeighbors(for: vm.currentMode.gcLeaderboard)
+                        withAnimation(.easeIn(duration: 0.3)) {
+                            rankResult = result
+                            rankLoaded = true
                         }
                     }
 
@@ -138,6 +148,12 @@ struct ResultView: View {
                 }
                 AccuracyBar(accuracy: vm.accuracy)
             }
+
+            // Global rank
+            if rankLoaded {
+                rankSection
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
         }
         .padding(28)
         .background(Color.white.opacity(0.04))
@@ -145,6 +161,49 @@ struct ResultView: View {
             .stroke(Color.white.opacity(0.08), lineWidth: 1))
         .cornerRadius(14)
         .padding(.horizontal, 24)
+    }
+
+    private var rankSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider().background(Color.white.opacity(0.1))
+            Text("全球名次").font(.system(size: 12)).foregroundColor(.white.opacity(0.5)).tracking(2)
+            if let local = rankResult.local {
+                VStack(spacing: 4) {
+                    if let above = rankResult.above {
+                        rankNeighborRow(entry: above, isLocal: false)
+                    }
+                    rankNeighborRow(entry: local, isLocal: true)
+                    if let below = rankResult.below {
+                        rankNeighborRow(entry: below, isLocal: false)
+                    }
+                }
+            } else {
+                Text("未登入 Game Center")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.35))
+            }
+        }
+    }
+
+    private func rankNeighborRow(entry: LeaderboardEntry, isLocal: Bool) -> some View {
+        HStack(spacing: 10) {
+            Text("#\(entry.rank)")
+                .font(.system(size: 13, weight: .black))
+                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.45))
+                .frame(width: 44, alignment: .leading)
+            Text(isLocal ? "你" : entry.playerName)
+                .font(.system(size: 13, weight: isLocal ? .heavy : .regular))
+                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.7))
+                .lineLimit(1)
+            Spacer()
+            Text(vm.currentMode.gcLeaderboard.formatScore(entry.score))
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.6))
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(isLocal ? Color(hex: "f5a623").opacity(0.08) : Color.clear)
+        .cornerRadius(6)
     }
 
     private func statRow(label: String, value: String, color: Color) -> some View {
