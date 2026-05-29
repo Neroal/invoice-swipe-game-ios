@@ -8,6 +8,14 @@ struct PrizeChecker {
         "路易莎咖啡", "爭鮮迴轉壽司", "85度C", "康是美", "寶雅"
     ]
 
+    static let itemNames: [String] = [
+        "美式咖啡", "拿鐵咖啡", "手搖飲料", "御飯糰", "三明治",
+        "雞腿便當", "炸雞腿", "薯條", "漢堡套餐", "凱薩沙拉",
+        "書籍雜誌", "文具用品", "日用百貨", "零食飲料", "保養品"
+    ]
+
+    private static let letterPool = Array("ABCDEFGHJKLMNPQRSTUVWXYZ")
+
     // MARK: – Check
 
     static func check(number: String, prizes: PrizeNumbers) -> WinTier? {
@@ -63,6 +71,10 @@ struct PrizeChecker {
         let dateStr = "\(rocYear).\(String(format: "%02d", month)).\(String(format: "%02d", day))"
         let seller  = rng.nextElement(sellers)
         let amount  = rng.nextInt(5...300) * 100
+        let letterPrefix = String(rng.nextElement(letterPool)) + String(rng.nextElement(letterPool))
+        let taxId   = rand8(rng: &rng)
+        let itemName = rng.nextElement(itemNames)
+        let invoiceCopy = rng.next() < 0.5 ? "消費者聯" : "收執聯"
 
         let forceWin = rng.next() < 0.90
         var number: String
@@ -113,11 +125,15 @@ struct PrizeChecker {
         let tier = check(number: number, prizes: prizes)
         return Invoice(
             number: number,
+            letterPrefix: letterPrefix,
             isWinner: tier != nil,
             winTier: tier,
             seller: seller,
+            taxId: taxId,
+            itemName: itemName,
             amount: amount,
-            dateString: dateStr
+            dateString: dateStr,
+            invoiceCopy: invoiceCopy
         )
     }
 }
