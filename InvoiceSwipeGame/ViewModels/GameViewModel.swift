@@ -55,7 +55,11 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
-    @Published var feedbackColor:   Color = Color.successGreen
+    var feedbackColor: Color {
+        guard feedbackCorrect else { return Color.errorRed }
+        if currentStreak >= 3 { return Self.comboColor(for: currentStreak) }
+        return Color.successGreen
+    }
     @Published var showFeedback     = false
 
     // MARK: – Big-win (non-blocking banner + flash)
@@ -147,7 +151,6 @@ final class GameViewModel: ObservableObject {
         isNewDailyRecord  = false
         isGameOver        = false
         showFeedback      = false
-        feedbackColor     = Color.successGreen
         showBigWin        = false
         bigWinFlash       = false
         bigWinID          = 0
@@ -204,6 +207,7 @@ final class GameViewModel: ObservableObject {
                 if self.timeLeft <= 5 { self.sound.playTick(); self.haptics.tick() }
                 if self.timeLeft <= 0 {
                     self.timerSub?.cancel()
+                    self.timerSub = nil
                     self.endGame()
                 }
             }
@@ -212,7 +216,7 @@ final class GameViewModel: ObservableObject {
     // MARK: – Swipe processing
     func processSwipe(_ dir: SwipeDirection) {
         guard !isAnimating, !cards.isEmpty, phase == .playing, !isGameOver else { return }
-        if currentMode == .endless { burnTimerSub?.cancel() }
+        if currentMode == .endless { burnTimerSub?.cancel(); burnTimerSub = nil }
         isAnimating = true
         sound.playSwipe()
         haptics.swipe()
@@ -317,6 +321,7 @@ final class GameViewModel: ObservableObject {
                 self.burnTimeLeft = max(0, self.burnTimeLeft - 0.05)
                 if self.burnTimeLeft <= 0 {
                     self.burnTimerSub?.cancel()
+                    self.burnTimerSub = nil
                     self.handleBurnTimeout()
                 }
             }
@@ -339,7 +344,6 @@ final class GameViewModel: ObservableObject {
         hotStreakCount = 0
         totalCount += 1
 
-        feedbackColor   = Color.errorRed
         feedbackText    = "⏰ 超時！"
         feedbackCorrect = false
         withAnimation(.spring()) { showFeedback = true }
@@ -378,7 +382,6 @@ final class GameViewModel: ObservableObject {
         if correct && currentStreak >= 3 {
             feedbackText    = "COMBO ×\(currentStreak)"
             feedbackCorrect = true
-            feedbackColor   = Self.comboColor(for: currentStreak)
             withAnimation(.spring()) { showFeedback = true }
             Task {
                 try? await Task.sleep(nanoseconds: 500_000_000)
@@ -387,7 +390,6 @@ final class GameViewModel: ObservableObject {
             return
         }
 
-        feedbackColor   = correct ? Color.successGreen : Color.errorRed
         feedbackText    = correct ? "✓ 正確" : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
         feedbackCorrect = correct
         withAnimation(.spring()) { showFeedback = true }
@@ -456,6 +458,7 @@ final class GameViewModel: ObservableObject {
         guard phase == .playing || phase == .countdown else { return }
 
         timerSub?.cancel()
+        timerSub = nil
         stopBurnTimer()
         // 無限模式由 playLifeLost() 已給過音效，不重複播放「時間到」
         if currentMode.hasTimer {
@@ -494,8 +497,10 @@ final class GameViewModel: ObservableObject {
 
     func goHome() {
         timerSub?.cancel()
+        timerSub = nil
         stopBurnTimer()
         countdownTask?.cancel()
+        countdownTask = nil
         lifeLostTask?.cancel()
         lifeLostTask = nil
         showCountdown     = false
@@ -533,10 +538,15 @@ final class GameViewModel: ObservableObject {
     var totalPrizeAmountString: String { Self.formatPrize(totalPrizeAmount) }
     var dailyBestPrizeString:   String { Self.formatPrize(dailyBestScore)   }
 
-    /// HUD 用縮寫：≥ 1萬 改用萬單位，結果頁仍用完整格式
-    var hudPrizeString: String {
+    private static let decimalFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
+        return f
+    }()
+
+    /// HUD 用縮寫：≥ 1萬 改用萬單位，結果頁仍用完整格式
+    var hudPrizeString: String {
+        let f = Self.decimalFormatter
         if totalPrizeAmount >= 10_000 {
             let wan = totalPrizeAmount / 10_000
             return "NT$ \(f.string(from: NSNumber(value: wan)) ?? "\(wan)")萬"
@@ -545,8 +555,7 @@ final class GameViewModel: ObservableObject {
     }
 
     static func formatPrize(_ amount: Int) -> String {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return "NT$ \(f.string(from: NSNumber(value: amount)) ?? "\(amount)")"
+        let formatted = decimalFormatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
+        return "NT$ \(formatted)"
     }
 }
