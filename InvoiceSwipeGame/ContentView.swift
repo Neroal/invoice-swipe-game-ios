@@ -57,7 +57,7 @@ struct ContentView: View {
 
             // Tutorial
             if vm.showTutorial {
-                TutorialView(isPreview: vm.showSettings)
+                TutorialView()
                     .transition(.opacity)
                     .zIndex(50)
             }

@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showRestoreAlert  = false
     @State private var restoreAlertMsg   = ""
     @State private var showGCAlert       = false
+    @State private var showInstructions  = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -88,11 +89,11 @@ struct SettingsView: View {
                 settingRow {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("遊戲說明").foregroundColor(.white.opacity(0.85))
-                        Text("重新觀看操作教學")
+                        Text("各模式規則與獎項說明")
                             .font(.system(size: 12)).foregroundColor(.white.opacity(0.4))
                     }
                 } trailing: {
-                    Button("查看") { vm.showTutorial = true }
+                    Button("查看") { showInstructions = true }
                         .font(.system(size: 13)).foregroundColor(.white.opacity(0.6))
                         .padding(.horizontal, 14).padding(.vertical, 8)
                         .background(Color.white.opacity(0.07))
@@ -126,7 +127,9 @@ struct SettingsView: View {
 
                 #if DEBUG
                 Button("重置新手教學（測試用）") {
-                    UserDefaults.standard.removeObject(forKey: "tutorial_seen")
+                    UserDefaults.standard.removeObject(forKey: "tutorial_seen_normal")
+                    UserDefaults.standard.removeObject(forKey: "tutorial_seen_daily")
+                    UserDefaults.standard.removeObject(forKey: "tutorial_seen_endless")
                 }
                 .font(.system(size: 11))
                 .foregroundColor(.white.opacity(0.2))
@@ -142,6 +145,7 @@ struct SettingsView: View {
         }
         .ignoresSafeArea(edges: .bottom)
         .transition(.move(edge: .bottom).combined(with: .opacity))
+        .sheet(isPresented: $showInstructions) { InstructionsView() }
         .alert("恢復購買", isPresented: $showRestoreAlert) {
             Button("確定", role: .cancel) {}
         } message: {
@@ -253,7 +257,7 @@ struct SettingsView: View {
     }
 }
 
-// MARK: – Instructions (unchanged)
+// MARK: – Instructions
 
 struct InstructionsView: View {
     @Environment(\.dismiss) var dismiss
@@ -275,9 +279,9 @@ struct InstructionsView: View {
                             ("六獎",   "後 3 碼", "NT$200"),
                         ])
                         instSection("遊戲模式", rows: [
-                            ("一般模式", "30秒張數",   ""),
-                            ("每日挑戰", "全球同一題", ""),
-                            ("無限模式", "3次機會",   ""),
+                            ("一般模式", "30秒計時  連擊提升大獎機率", "總獎金排名"),
+                            ("每日挑戰", "全球同一題  獎金 × 準確率", "每日重置排行"),
+                            ("無限模式", "倒數計時  連擊越高壓力越大", "最長連擊排名"),
                         ])
                         instSection("操作", rows: [
                             ("右滑 / →", "中獎",   ""),

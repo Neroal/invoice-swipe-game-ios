@@ -113,7 +113,7 @@ final class GameViewModel: ObservableObject {
     func selectMode(_ mode: GameMode) {
         if mode == .daily, !daily.canPlay { return }
         currentMode = mode
-        if !UserDefaults.standard.bool(forKey: "tutorial_seen") {
+        if !UserDefaults.standard.bool(forKey: "tutorial_seen_\(mode.rawValue)") {
             showTutorial = true
         } else {
             beginGame()
@@ -121,7 +121,7 @@ final class GameViewModel: ObservableObject {
     }
 
     func dismissTutorial() {
-        UserDefaults.standard.set(true, forKey: "tutorial_seen")
+        UserDefaults.standard.set(true, forKey: "tutorial_seen_\(currentMode.rawValue)")
         showTutorial = false
         beginGame()
     }
@@ -486,7 +486,7 @@ final class GameViewModel: ObservableObject {
         case .daily:
             gc.submitScore(dailyFinalScore, to: .daily)
         case .endless:
-            gc.submitScore(bestStreak * 1000 + totalCount, to: .endless)
+            gc.submitScore(bestStreak, to: .endless)
         }
     }
 

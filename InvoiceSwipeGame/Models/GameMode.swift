@@ -25,9 +25,9 @@ enum GameMode: String, CaseIterable, Identifiable {
 
     var description: String {
         switch self {
-        case .daily:   return "全球同一題，每天限 3 次"
-        case .normal:  return "30 秒限時，拼加權分數"
-        case .endless: return "3 條命，衝最長連續紀錄"
+        case .daily:   return "全球同一份題，每天 3 次"
+        case .normal:  return "30 秒限時，拼中獎總金額"
+        case .endless: return "3 條命，拼最長連擊"
         }
     }
 
