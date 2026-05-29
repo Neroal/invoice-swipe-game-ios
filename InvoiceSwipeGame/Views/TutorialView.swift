@@ -2,8 +2,6 @@ import SwiftUI
 
 struct TutorialView: View {
     @EnvironmentObject var vm: GameViewModel
-    /// 從設定頁進來時傳入，只關閉教學而不開始遊戲
-    var isPreview: Bool = false
 
     var body: some View {
         ZStack {
@@ -16,30 +14,21 @@ struct TutorialView: View {
                         .font(.system(size: 30, weight: .black))
                         .foregroundColor(.white)
                         .tracking(5)
-                    Text("HOW TO PLAY")
-                        .font(.system(size: 11)).foregroundColor(.white.opacity(0.35)).tracking(3)
+                    Text(vm.currentMode.displayName.uppercased())
+                        .font(.system(size: 11)).foregroundColor(Color(hex: "e94560").opacity(0.8)).tracking(3)
                 }
 
                 VStack(spacing: 12) {
-                    stepRow(num: "1",
-                            text: "畫面**上方**顯示本期中獎號碼\n記住頭獎號碼的末幾碼")
-                    stepRow(num: "2",
-                            text: "快速對照下方**發票號碼**\n判斷是否符合中獎條件")
-                    stepRow(num: "3",
-                            text: "**右滑** = 中獎　　**左滑** = 未中\n也可點畫面下方按鈕")
-                    stepRow(num: "4", text: scoringRuleText)
+                    ForEach(Array(modeSteps.enumerated()), id: \.offset) { idx, step in
+                        stepRow(num: "\(idx + 1)", text: step)
+                    }
                 }
                 .padding(.horizontal, 24)
 
                 Button {
-                    if isPreview {
-                        vm.showTutorial  = false
-                        vm.showSettings  = true
-                    } else {
-                        vm.dismissTutorial()
-                    }
+                    vm.dismissTutorial()
                 } label: {
-                    Text(isPreview ? "關閉" : "我知道了，開始！")
+                    Text("我知道了，開始！")
                         .font(.system(size: 16, weight: .black))
                         .tracking(3)
                         .foregroundColor(.white)
@@ -56,12 +45,30 @@ struct TutorialView: View {
         .transition(.opacity)
     }
 
-    private var scoringRuleText: String {
+    private var commonSteps: [String] {
+        [
+            "畫面**上方**顯示本期中獎號碼\n記住頭獎號碼的末幾碼",
+            "快速對照下方**發票號碼**\n判斷是否符合中獎條件",
+            "**右滑** = 中獎　　**左滑** = 未中\n也可點畫面下方按鈕",
+        ]
+    }
+
+    private var modeSteps: [String] {
         switch vm.currentMode {
-        case .daily, .normal:
-            return "答對 **+2 至 +12 分**（依獎級高低）\n答錯扣 **3 分**，準確才能拿高分"
+        case .normal:
+            return commonSteps + [
+                "連續答中發票，**下一張大獎機率**會提升\n多中大獎，得分越高",
+            ]
+        case .daily:
+            return commonSteps + [
+                "得分 = **中獎金額 × 準確率**\n精準才能拿高分，衝全球排行",
+                "全球同一份題，每天最多 **3 次**\n把握機會，用準確率刷高分",
+            ]
         case .endless:
-            return "答錯扣一條命，共 **3 條命**\n排名 = 最長連續 **×1000** + 總張數"
+            return commonSteps + [
+                "每張發票有**倒數計時**\n連擊越高，時間越短、壓力越大",
+                "答錯或超時**扣一條命**，共 3 條命\n排名以**最長連擊**計算",
+            ]
         }
     }
 
