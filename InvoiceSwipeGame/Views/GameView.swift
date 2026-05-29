@@ -33,7 +33,7 @@ struct GameView: View {
             if vm.showFeedback {
                 Text(vm.feedbackText)
                     .font(.system(size: 16, weight: .black))
-                    .foregroundColor(vm.feedbackCorrect ? Color(hex: "2ecc71") : Color(hex: "e74c3c"))
+                    .foregroundColor(vm.feedbackColor)
                     .tracking(2)
                     .transition(.scale(scale: 0.85).combined(with: .opacity))
             }
@@ -124,15 +124,48 @@ struct GameView: View {
             HStack(spacing: 6) {
                 livesView
                 comboChip(streak: vm.currentStreak)
-                hudChip(label: "最高", value: "\(vm.bestStreak)", color: Color(hex: "f5a623"))
             }
         } else {
-            HStack(spacing: 6) {
-                hudChip(label: "時間", value: "\(vm.timeLeft)",
-                        color: vm.timeLeft <= 5 ? Color(hex: "e94560") : Color(hex: "f5a623"))
-                hudChip(label: "分數", value: "\(vm.score)",         color: Color(hex: "2ecc71"))
-            }
+            timerPrizeChip
         }
+    }
+
+    private var timerPrizeChip: some View {
+        HStack(spacing: 0) {
+            VStack(spacing: 1) {
+                Text("時間")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.35))
+                    .tracking(2)
+                Text("\(vm.timeLeft)")
+                    .font(.system(size: 22, weight: .black, design: .monospaced))
+                    .foregroundColor(vm.timeLeft <= 5 ? Color(hex: "e94560") : Color(hex: "f5a623"))
+            }
+            .frame(width: 68)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 1, height: 28)
+
+            VStack(spacing: 1) {
+                Text("中獎")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.35))
+                    .tracking(2)
+                Text(vm.hudPrizeString)
+                    .font(.system(size: 22, weight: .black, design: .monospaced))
+                    .foregroundColor(Color(hex: "2ecc71"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color.white.opacity(0.06))
+        .cornerRadius(6)
+        .frame(width: 240)
     }
 
     private var livesView: some View {
@@ -281,22 +314,13 @@ struct GameView: View {
             default:     return Color(hex: "ff1111")
             }
         }()
-        let fontSize: CGFloat = {
-            switch streak {
-            case 0..<3:  return 22
-            case 3..<5:  return 26
-            case 5..<8:  return 30
-            case 8..<10: return 34
-            default:     return 38
-            }
-        }()
         return VStack(spacing: 1) {
             Text("連續")
                 .font(.system(size: 9))
                 .foregroundColor(.white.opacity(0.35))
                 .tracking(2)
             Text("\(streak)")
-                .font(.system(size: fontSize, weight: .black, design: .monospaced))
+                .font(.system(size: 22, weight: .black, design: .monospaced))
                 .foregroundColor(color)
                 .shadow(color: color.opacity(streak >= 5 ? 0.8 : 0), radius: 8)
                 .lineLimit(1)
@@ -329,20 +353,6 @@ struct GameView: View {
     }
 
     // MARK: – Helpers
-    private func hudChip(label: String, value: String, color: Color) -> some View {
-        VStack(spacing: 1) {
-            Text(label).font(.system(size: 9)).foregroundColor(.white.opacity(0.35)).tracking(2)
-            Text(value)
-                .font(.system(size: 22, weight: .black, design: .monospaced))
-                .foregroundColor(color)
-                .lineLimit(1)
-                .fixedSize()
-        }
-        .padding(.horizontal, 10).padding(.vertical, 4)
-        .background(Color.white.opacity(0.06))
-        .cornerRadius(6)
-        .fixedSize()
-    }
 }
 
 // MARK: – Flying card overlay

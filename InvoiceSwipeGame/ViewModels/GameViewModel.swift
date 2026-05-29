@@ -21,10 +21,11 @@ final class GameViewModel: ObservableObject {
     @Published var cards:  [Invoice] = []
 
     // MARK: – HUD
-    @Published var timeLeft:     Int = 30
-    @Published var totalCount:   Int = 0
-    @Published var correctCount: Int = 0
-    @Published var scoreBonus:   Int = 0   // 計時模式大獎額外加分累計
+    @Published var timeLeft:          Int = 30
+    @Published var totalCount:        Int = 0
+    @Published var correctCount:      Int = 0
+    @Published var scoreBonus:        Int = 0   // 加權分數內部用，不對玩家展示
+    @Published var totalPrizeAmount:  Int = 0   // 本局中獎總金額（一般 / 每日挑戰）
     // Endless
     @Published var lives:         Int = 3
     @Published var currentStreak: Int = 0
@@ -49,6 +50,7 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
+    @Published var feedbackColor:   Color = Color(hex: "2ecc71")
     @Published var showFeedback     = false
 
     // MARK: – Big-win (non-blocking banner + flash)
@@ -126,10 +128,11 @@ final class GameViewModel: ObservableObject {
         lifeLostTask = nil
 
         // Reset state
-        timeLeft      = 30
-        totalCount    = 0
-        correctCount  = 0
-        scoreBonus    = 0
+        timeLeft          = 30
+        totalCount        = 0
+        correctCount      = 0
+        scoreBonus        = 0
+        totalPrizeAmount  = 0
         lives          = 3
         currentStreak  = 0
         bestStreak     = 0
@@ -139,6 +142,7 @@ final class GameViewModel: ObservableObject {
         isNewDailyRecord  = false
         isGameOver        = false
         showFeedback      = false
+        feedbackColor     = Color(hex: "2ecc71")
         showBigWin        = false
         bigWinFlash       = false
         bigWinID          = 0
@@ -285,11 +289,8 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     private func deliverFeedback(correct: Bool, card: Invoice) {
         if correct, let tier = card.winTier {
-            // 所有中獎獎級統一走 banner 演出
-            triggerBigWinEffect(tier)
-            return
-        }
-        if correct {
+            triggerBigWinEffect(tier)   // 聲音在此處理，不重複播放
+        } else if correct {
             sound.playCorrect()
             haptics.correct()
         } else {
@@ -297,13 +298,35 @@ final class GameViewModel: ObservableObject {
             haptics.wrong()
         }
 
+        // 無限模式 streak ≥ 3 → 顯示 COMBO ×N（對應顏色）
+        if currentMode == .endless && correct && currentStreak >= 3 {
+            feedbackText    = "COMBO ×\(currentStreak)"
+            feedbackCorrect = true
+            feedbackColor   = Self.comboColor(for: currentStreak)
+            withAnimation(.spring()) { showFeedback = true }
+            Task {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                withAnimation { showFeedback = false }
+            }
+            return
+        }
+
+        feedbackColor   = correct ? Color(hex: "2ecc71") : Color(hex: "e74c3c")
         feedbackText    = correct ? "✓ 正確" : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
         feedbackCorrect = correct
-
         withAnimation(.spring()) { showFeedback = true }
         Task {
             try? await Task.sleep(nanoseconds: 350_000_000)
             withAnimation { showFeedback = false }
+        }
+    }
+
+    static func comboColor(for streak: Int) -> Color {
+        switch streak {
+        case 3..<5:  return Color(hex: "f5a623")
+        case 5..<8:  return Color(hex: "ff6600")
+        case 8..<10: return Color(hex: "ff4400")
+        default:     return Color(hex: "ff1111")
         }
     }
 
@@ -313,7 +336,8 @@ final class GameViewModel: ObservableObject {
         bigWinTask?.cancel()
         bigWinTask = nil
 
-        scoreBonus += tier.bonusPoints
+        scoreBonus       += tier.bonusPoints
+        totalPrizeAmount += tier.prizeAmount
         switch tier {
         case .special: sound.playSpecialPrize()
         case .grand:   sound.playGrandPrize()
@@ -364,7 +388,7 @@ final class GameViewModel: ObservableObject {
 
         if currentMode == .daily {
             daily.recordAttempt()
-            isNewDailyRecord = daily.tryUpdateBest(score)
+            isNewDailyRecord = daily.tryUpdateBest(totalPrizeAmount)
         }
         dailyBestScore = daily.bestScore()
 
@@ -381,9 +405,9 @@ final class GameViewModel: ObservableObject {
         let gc = GameCenterManager.shared
         switch currentMode {
         case .normal:
-            gc.submitScore(score,      to: .normal)
+            gc.submitScore(totalPrizeAmount, to: .normal)
         case .daily:
-            gc.submitScore(score,      to: .daily)
+            gc.submitScore(totalPrizeAmount, to: .daily)
         case .endless:
             gc.submitScore(bestStreak * 1000 + totalCount, to: .endless)
         }
@@ -420,6 +444,26 @@ final class GameViewModel: ObservableObject {
 
     var accuracy: Int {
         totalCount > 0 ? Int(Double(correctCount) / Double(totalCount) * 100) : 0
+    }
+
+    var totalPrizeAmountString: String { Self.formatPrize(totalPrizeAmount) }
+    var dailyBestPrizeString:   String { Self.formatPrize(dailyBestScore)   }
+
+    /// HUD 用縮寫：≥ 1萬 改用萬單位，結果頁仍用完整格式
+    var hudPrizeString: String {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        if totalPrizeAmount >= 10_000 {
+            let wan = totalPrizeAmount / 10_000
+            return "NT$ \(f.string(from: NSNumber(value: wan)) ?? "\(wan)")萬"
+        }
+        return "NT$ \(f.string(from: NSNumber(value: totalPrizeAmount)) ?? "\(totalPrizeAmount)")"
+    }
+
+    static func formatPrize(_ amount: Int) -> String {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        return "NT$ \(f.string(from: NSNumber(value: amount)) ?? "\(amount)")"
     }
 
     var currentPeriodLabel: String {

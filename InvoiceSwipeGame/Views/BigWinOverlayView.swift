@@ -2,9 +2,7 @@ import SwiftUI
 
 // Non-blocking banner that slides in from the trailing edge
 struct BigWinOverlayView: View {
-    @EnvironmentObject var vm: GameViewModel
-
-    private var tier: WinTier { vm.bigWinTier ?? .first }
+    let tier: WinTier
 
     private var tierAccent: Color {
         switch tier {

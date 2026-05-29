@@ -46,8 +46,8 @@ struct ContentView: View {
             }
 
             // Non-blocking fly-in banner (slides from trailing edge, fades out)
-            if vm.showBigWin {
-                BigWinOverlayView()
+            if vm.showBigWin, let tier = vm.bigWinTier {
+                BigWinOverlayView(tier: tier)
                     .id(vm.bigWinID)   // 每次中獎 id 自增，強制 re-insert → slide-in 動畫必定觸發
                     .transition(.asymmetric(
                         insertion: .move(edge: .leading).combined(with: .opacity),
