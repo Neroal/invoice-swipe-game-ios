@@ -1,13 +1,44 @@
 import GameKit
 import SwiftUI
 
+// MARK: - Entry model
+
+struct LeaderboardEntry: Identifiable {
+    let id: String          // gamePlayerID
+    let rank: Int
+    let score: Int
+    let playerName: String
+    var avatar: UIImage? = nil
+    let isLocalPlayer: Bool
+}
+
 // MARK: - Leaderboard IDs
-// 請在 App Store Connect > 你的 App > Services > Game Center 建立這三個排行榜，
-// 並確認 ID 與下方常數一致。
-enum GCLeaderboard: String {
-    case normal  = "invoice.normal.score"    // 一般模式：30 秒判斷張數
-    case daily   = "invoice.daily.score"     // 每日挑戰：30 秒判斷張數
-    case endless = "invoice.endless.streak"  // 無限模式：最長連續答對張數
+
+enum GCLeaderboard: String, CaseIterable {
+    case normal  = "invoice.normal.score"
+    case daily   = "invoice.daily.score.v2"
+    case endless = "invoice.endless.streak"
+
+    var timeScope: GKLeaderboard.TimeScope {
+        self == .daily ? .today : .allTime
+    }
+
+    var displayName: String {
+        switch self {
+        case .normal:  return "一般模式"
+        case .daily:   return "每日挑戰"
+        case .endless: return "無限模式"
+        }
+    }
+
+    func formatScore(_ score: Int) -> String {
+        switch self {
+        case .normal, .daily:
+            return "NT$ \(score.formatted())"
+        case .endless:
+            return "Combo \(score / 1000)"
+        }
+    }
 }
 
 // MARK: - Manager
@@ -18,25 +49,24 @@ final class GameCenterManager: ObservableObject {
     static let shared = GameCenterManager()
 
     @Published var isAuthenticated = false
-    /// 傳入需要顯示的 view controller（Game Center 登入畫面）
     @Published var authVC: UIViewController? = nil
     @Published var showAuthSheet = false
+    @Published var modeRanks: [GCLeaderboard: Int] = [:]
 
     // MARK: - Authentication
 
-    /// 在 App 啟動時呼叫一次
     func authenticate() {
         GKLocalPlayer.local.authenticateHandler = { [weak self] viewController, error in
             guard let self else { return }
             Task { @MainActor in
                 if let vc = viewController {
-                    // 需要讓玩家登入，保存 VC 讓 App 層彈出
                     self.authVC = vc
                     self.showAuthSheet = true
                 } else if GKLocalPlayer.local.isAuthenticated {
                     self.isAuthenticated = true
                     self.authVC = nil
                     self.showAuthSheet = false
+                    await self.fetchModeRanks()
                 } else {
                     self.isAuthenticated = false
                     if let e = error {
@@ -49,7 +79,6 @@ final class GameCenterManager: ObservableObject {
 
     // MARK: - Score submission
 
-    /// 上傳分數；若未認證則靜默略過
     func submitScore(_ score: Int, to leaderboard: GCLeaderboard) {
         guard GKLocalPlayer.local.isAuthenticated else { return }
         Task {
@@ -60,27 +89,147 @@ final class GameCenterManager: ObservableObject {
                     player: GKLocalPlayer.local,
                     leaderboardIDs: [leaderboard.rawValue]
                 )
+                await fetchModeRanks()
             } catch {
                 print("[GameCenter] 分數上傳失敗 (\(leaderboard.rawValue)): \(error.localizedDescription)")
             }
         }
     }
 
-    // MARK: - Present leaderboard
+    // MARK: - Mode rank cache (for StartView badges)
+
+    func fetchModeRanks() async {
+        guard GKLocalPlayer.local.isAuthenticated else { return }
+        for mode in GCLeaderboard.allCases {
+            if let rank = await fetchLocalPlayerRank(for: mode) {
+                modeRanks[mode] = rank
+            }
+        }
+    }
+
+    private func fetchLocalPlayerRank(for leaderboard: GCLeaderboard) async -> Int? {
+        do {
+            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboard.rawValue])
+            guard let board = boards.first else { return nil }
+            let (localEntry, _, _) = try await board.loadEntries(
+                for: .global, timeScope: leaderboard.timeScope, range: NSRange(1...1)
+            )
+            guard let rank = localEntry?.rank, rank > 0 else { return nil }
+            return rank
+        } catch {
+            print("[GameCenter] 排名查詢失敗 (\(leaderboard.rawValue)): \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    // MARK: - Result screen: local rank + neighbors
+
+    func loadResultRankAndNeighbors(for leaderboard: GCLeaderboard) async -> (local: LeaderboardEntry?, above: LeaderboardEntry?, below: LeaderboardEntry?) {
+        guard GKLocalPlayer.local.isAuthenticated else { return (nil, nil, nil) }
+        do {
+            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboard.rawValue])
+            guard let board = boards.first else { return (nil, nil, nil) }
+
+            let (localGKEntry, _, totalCount) = try await board.loadEntries(
+                for: .global, timeScope: leaderboard.timeScope, range: NSRange(1...1)
+            )
+            guard let localGKEntry, localGKEntry.rank > 0 else { return (nil, nil, nil) }
+
+            let local = LeaderboardEntry(
+                id: localGKEntry.player.gamePlayerID,
+                rank: localGKEntry.rank,
+                score: localGKEntry.score,
+                playerName: localGKEntry.player.displayName,
+                isLocalPlayer: true
+            )
+
+            let rank = localGKEntry.rank
+            guard totalCount > 1 else { return (local, nil, nil) }
+
+            let startPos = max(1, rank - 1)
+            let endPos   = min(totalCount, rank + 1)
+
+            let (_, neighborGKEntries, _) = try await board.loadEntries(
+                for: .global, timeScope: leaderboard.timeScope, range: NSRange(startPos...endPos)
+            )
+
+            let above = neighborGKEntries.first(where: { $0.rank == rank - 1 }).map {
+                LeaderboardEntry(id: $0.player.gamePlayerID, rank: $0.rank, score: $0.score, playerName: $0.player.displayName, isLocalPlayer: false)
+            }
+            let below = neighborGKEntries.first(where: { $0.rank == rank + 1 }).map {
+                LeaderboardEntry(id: $0.player.gamePlayerID, rank: $0.rank, score: $0.score, playerName: $0.player.displayName, isLocalPlayer: false)
+            }
+            return (local, above, below)
+        } catch {
+            print("[GameCenter] 鄰近玩家載入失敗: \(error.localizedDescription)")
+            return (nil, nil, nil)
+        }
+    }
+
+    // MARK: - Standalone leaderboard: top entries
+
+    func loadTopEntries(for leaderboard: GCLeaderboard, count: Int = 20) async -> (entries: [LeaderboardEntry], localOutsideTop: LeaderboardEntry?) {
+        guard GKLocalPlayer.local.isAuthenticated else { return ([], nil) }
+        do {
+            let boards = try await GKLeaderboard.loadLeaderboards(IDs: [leaderboard.rawValue])
+            guard let board = boards.first else { return ([], nil) }
+            let safeCount = max(1, count)
+            let (localGKEntry, topGKEntries, _) = try await board.loadEntries(
+                for: .global, timeScope: leaderboard.timeScope, range: NSRange(1...safeCount)
+            )
+            let localPlayerID = GKLocalPlayer.local.gamePlayerID
+            let entries: [LeaderboardEntry] = topGKEntries.map { e in
+                playerCache[e.player.gamePlayerID] = e.player
+                return LeaderboardEntry(
+                    id: e.player.gamePlayerID,
+                    rank: e.rank,
+                    score: e.score,
+                    playerName: e.player.displayName,
+                    isLocalPlayer: e.player.gamePlayerID == localPlayerID
+                )
+            }
+            var localOutsideTop: LeaderboardEntry? = nil
+            if let e = localGKEntry,
+               !topGKEntries.contains(where: { $0.player.gamePlayerID == localPlayerID }) {
+                localOutsideTop = LeaderboardEntry(
+                    id: e.player.gamePlayerID,
+                    rank: e.rank,
+                    score: e.score,
+                    playerName: e.player.displayName,
+                    isLocalPlayer: true
+                )
+            }
+            return (entries, localOutsideTop)
+        } catch {
+            print("[GameCenter] 排行榜載入失敗 (\(leaderboard.rawValue)): \(error.localizedDescription)")
+            return ([], nil)
+        }
+    }
+
+    // MARK: - Player cache & avatar loading
+
+    private var playerCache: [String: GKPlayer] = [:]
+
+    func loadAvatar(for playerID: String) async -> UIImage? {
+        guard let player = playerCache[playerID] else { return nil }
+        return try? await player.loadPhoto(for: .small)
+    }
+
+    // MARK: - Present native leaderboard overlay
 
     func presentLeaderboard(_ leaderboard: GCLeaderboard, from root: UIViewController) {
         guard GKLocalPlayer.local.isAuthenticated else { return }
         let vc = GKGameCenterViewController(
             leaderboardID: leaderboard.rawValue,
             playerScope: .global,
-            timeScope: .allTime
+            timeScope: leaderboard.timeScope
         )
         vc.gameCenterDelegate = LeaderboardDismissDelegate.shared
         root.present(vc, animated: true)
     }
 }
 
-// MARK: - Dismiss delegate (singleton to avoid retain issues)
+// MARK: - Dismiss delegate
 
 private final class LeaderboardDismissDelegate: NSObject, GKGameCenterControllerDelegate {
     static let shared = LeaderboardDismissDelegate()
@@ -91,15 +240,13 @@ private final class LeaderboardDismissDelegate: NSObject, GKGameCenterController
 
 // MARK: - SwiftUI helper: Game Center auth sheet
 
-/// 包裝 GKGameCenterViewController 供 SwiftUI sheet 使用
 struct GameCenterAuthView: UIViewControllerRepresentable {
     let viewController: UIViewController
-
     func makeUIViewController(context: Context) -> UIViewController { viewController }
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
 
-// MARK: - SwiftUI button helper: 開啟排行榜
+// MARK: - SwiftUI button helper: 開啟原生排行榜
 
 struct LeaderboardButton: View {
     let title: String

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct StartView: View {
     @EnvironmentObject var vm: GameViewModel
+    @ObservedObject private var gc = GameCenterManager.shared
+    @State private var showLeaderboard = false
 
     var body: some View {
         ZStack {
@@ -39,20 +41,41 @@ struct StartView: View {
                     }
                     .padding(.horizontal, 20)
 
-                    // Settings
-                    Button { vm.showSettings = true } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "gearshape.fill")
-                            Text("設定")
+                    // Bottom action row
+                    HStack(spacing: 12) {
+                        Button { vm.showSettings = true } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "gearshape.fill")
+                                Text("設定")
+                            }
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.45))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .overlay(RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1))
                         }
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.45))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .overlay(RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1))
+                        .hapticTap()
+
+                        if gc.isAuthenticated {
+                            Button { showLeaderboard = true } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "trophy.fill")
+                                    Text("排行榜")
+                                }
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(hex: "f5a623").opacity(0.8))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 9)
+                                .overlay(RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color(hex: "f5a623").opacity(0.25), lineWidth: 1))
+                            }
+                            .hapticTap()
+                        }
                     }
-                    .hapticTap()
+                    .sheet(isPresented: $showLeaderboard) {
+                        LeaderboardView()
+                    }
 
                     Spacer(minLength: 40)
                 }
@@ -80,6 +103,7 @@ private struct DemoBadgeView: View {
 
 private struct ModeCardView: View {
     @EnvironmentObject var vm: GameViewModel
+    @ObservedObject private var gc = GameCenterManager.shared
     let mode: GameMode
 
     private var isDailyDisabled: Bool {
@@ -118,6 +142,15 @@ private struct ModeCardView: View {
                     }
                 }
                 Spacer()
+                if gc.isAuthenticated, let rank = gc.modeRanks[mode.gcLeaderboard] {
+                    Text("全球 #\(rank)")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Color(hex: "f5a623"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "f5a623").opacity(0.1))
+                        .cornerRadius(10)
+                }
                 Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundColor(.white.opacity(isDailyDisabled ? 0.08 : 0.2))

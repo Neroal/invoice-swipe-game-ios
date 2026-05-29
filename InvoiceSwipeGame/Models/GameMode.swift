@@ -32,4 +32,12 @@ enum GameMode: String, CaseIterable, Identifiable {
     }
 
     var hasTimer: Bool { self != .endless }
+
+    var gcLeaderboard: GCLeaderboard {
+        switch self {
+        case .normal:  return .normal
+        case .daily:   return .daily
+        case .endless: return .endless
+        }
+    }
 }

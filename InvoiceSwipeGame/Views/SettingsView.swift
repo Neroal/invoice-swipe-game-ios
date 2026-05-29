@@ -62,25 +62,7 @@ struct SettingsView: View {
                     }
                 } trailing: {
                     if gc.isAuthenticated {
-                        Menu {
-                            Button("一般模式排行") {
-                                openLeaderboard(.normal)
-                            }
-                            Button("每日挑戰排行") {
-                                openLeaderboard(.daily)
-                            }
-                            Button("無限模式排行") {
-                                openLeaderboard(.endless)
-                            }
-                        } label: {
-                            Text("查看")
-                                .font(.system(size: 13)).foregroundColor(.white.opacity(0.6))
-                                .padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(Color.white.opacity(0.07))
-                                .overlay(RoundedRectangle(cornerRadius: 7)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1))
-                                .cornerRadius(7)
-                        }
+                        EmptyView()
                     } else {
                         Button("登入") {
                             GameCenterManager.shared.authenticate()
@@ -256,12 +238,6 @@ struct SettingsView: View {
     }
 
     // MARK: – Helpers
-
-    private func openLeaderboard(_ board: GCLeaderboard) {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let root  = scene.windows.first?.rootViewController else { return }
-        GameCenterManager.shared.presentLeaderboard(board, from: root)
-    }
 
     private func settingRow<L: View, T: View>(@ViewBuilder leading: () -> L,
                                                @ViewBuilder trailing: () -> T) -> some View {

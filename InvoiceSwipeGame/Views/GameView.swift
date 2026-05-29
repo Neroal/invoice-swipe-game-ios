@@ -57,6 +57,7 @@ struct GameView: View {
             HStack {
                 Spacer()
                 hudRow
+                Spacer()
             }
 
             // 特別獎
