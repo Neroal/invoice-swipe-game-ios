@@ -150,7 +150,7 @@ struct ResultView: View {
             }
 
             // Global rank
-            if rankLoaded {
+            if shouldShowRank {
                 rankSection
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
@@ -161,6 +161,12 @@ struct ResultView: View {
             .stroke(Color.white.opacity(0.08), lineWidth: 1))
         .cornerRadius(14)
         .padding(.horizontal, 24)
+    }
+
+    private var shouldShowRank: Bool {
+        guard rankLoaded, let local = rankResult.local, local.rank > 0 else { return false }
+        if vm.currentMode == .daily { return formulaPhase >= 4 }
+        return true
     }
 
     private var rankSection: some View {
@@ -177,10 +183,6 @@ struct ResultView: View {
                         rankNeighborRow(entry: below, isLocal: false)
                     }
                 }
-            } else {
-                Text("未登入 Game Center")
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.35))
             }
         }
     }
