@@ -24,7 +24,6 @@ final class GameViewModel: ObservableObject {
     @Published var timeLeft:          Int = 30
     @Published var totalCount:        Int = 0
     @Published var correctCount:      Int = 0
-    @Published var scoreBonus:        Int = 0   // 加權分數內部用，不對玩家展示
     @Published var totalPrizeAmount:  Int = 0   // 本局中獎總金額（一般 / 每日挑戰）
     // Endless
     @Published var lives:         Int = 3
@@ -140,7 +139,6 @@ final class GameViewModel: ObservableObject {
         timeLeft          = 30
         totalCount        = 0
         correctCount      = 0
-        scoreBonus        = 0
         totalPrizeAmount  = 0
         lives          = 3
         currentStreak  = 0
@@ -414,7 +412,6 @@ final class GameViewModel: ObservableObject {
         bigWinTask?.cancel()
         bigWinTask = nil
 
-        scoreBonus       += tier.bonusPoints
         totalPrizeAmount += tier.prizeAmount
         switch tier {
         case .special: sound.playSpecialPrize()
@@ -521,9 +518,6 @@ final class GameViewModel: ObservableObject {
     var canPlayDaily: Bool          { daily.canPlay            }
 
     var wrongCount: Int { totalCount - correctCount }
-
-    /// 加權分數：答對 ×2，答錯 ×3，大獎額外加分（下限 0）
-    var score: Int { max(0, correctCount * 2 - wrongCount * 3 + scoreBonus) }
 
     var accuracy: Int {
         totalCount > 0 ? Int(Double(correctCount) / Double(totalCount) * 100) : 0
