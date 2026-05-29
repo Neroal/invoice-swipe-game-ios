@@ -207,6 +207,7 @@ final class GameViewModel: ObservableObject {
                 if self.timeLeft <= 5 { self.sound.playTick(); self.haptics.tick() }
                 if self.timeLeft <= 0 {
                     self.timerSub?.cancel()
+                    self.timerSub = nil
                     self.endGame()
                 }
             }
@@ -215,7 +216,7 @@ final class GameViewModel: ObservableObject {
     // MARK: – Swipe processing
     func processSwipe(_ dir: SwipeDirection) {
         guard !isAnimating, !cards.isEmpty, phase == .playing, !isGameOver else { return }
-        if currentMode == .endless { burnTimerSub?.cancel() }
+        if currentMode == .endless { burnTimerSub?.cancel(); burnTimerSub = nil }
         isAnimating = true
         sound.playSwipe()
         haptics.swipe()
@@ -320,6 +321,7 @@ final class GameViewModel: ObservableObject {
                 self.burnTimeLeft = max(0, self.burnTimeLeft - 0.05)
                 if self.burnTimeLeft <= 0 {
                     self.burnTimerSub?.cancel()
+                    self.burnTimerSub = nil
                     self.handleBurnTimeout()
                 }
             }
@@ -456,6 +458,7 @@ final class GameViewModel: ObservableObject {
         guard phase == .playing || phase == .countdown else { return }
 
         timerSub?.cancel()
+        timerSub = nil
         stopBurnTimer()
         // 無限模式由 playLifeLost() 已給過音效，不重複播放「時間到」
         if currentMode.hasTimer {
@@ -494,8 +497,10 @@ final class GameViewModel: ObservableObject {
 
     func goHome() {
         timerSub?.cancel()
+        timerSub = nil
         stopBurnTimer()
         countdownTask?.cancel()
+        countdownTask = nil
         lifeLostTask?.cancel()
         lifeLostTask = nil
         showCountdown     = false
