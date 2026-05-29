@@ -55,7 +55,11 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
-    @Published var feedbackColor:   Color = Color(hex: "2ecc71")
+    var feedbackColor: Color {
+        guard feedbackCorrect else { return Color(hex: "e74c3c") }
+        if currentStreak >= 3 { return Self.comboColor(for: currentStreak) }
+        return Color(hex: "2ecc71")
+    }
     @Published var showFeedback     = false
 
     // MARK: – Big-win (non-blocking banner + flash)
@@ -147,7 +151,6 @@ final class GameViewModel: ObservableObject {
         isNewDailyRecord  = false
         isGameOver        = false
         showFeedback      = false
-        feedbackColor     = Color(hex: "2ecc71")
         showBigWin        = false
         bigWinFlash       = false
         bigWinID          = 0
@@ -339,7 +342,6 @@ final class GameViewModel: ObservableObject {
         hotStreakCount = 0
         totalCount += 1
 
-        feedbackColor   = Color(hex: "e74c3c")
         feedbackText    = "⏰ 超時！"
         feedbackCorrect = false
         withAnimation(.spring()) { showFeedback = true }
@@ -378,7 +380,6 @@ final class GameViewModel: ObservableObject {
         if correct && currentStreak >= 3 {
             feedbackText    = "COMBO ×\(currentStreak)"
             feedbackCorrect = true
-            feedbackColor   = Self.comboColor(for: currentStreak)
             withAnimation(.spring()) { showFeedback = true }
             Task {
                 try? await Task.sleep(nanoseconds: 500_000_000)
@@ -387,7 +388,6 @@ final class GameViewModel: ObservableObject {
             return
         }
 
-        feedbackColor   = correct ? Color(hex: "2ecc71") : Color(hex: "e74c3c")
         feedbackText    = correct ? "✓ 正確" : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
         feedbackCorrect = correct
         withAnimation(.spring()) { showFeedback = true }
