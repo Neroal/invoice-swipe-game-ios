@@ -15,7 +15,7 @@ struct TutorialView: View {
                         .foregroundColor(.white)
                         .tracking(5)
                     Text(vm.currentMode.displayName.uppercased())
-                        .font(.system(size: 11)).foregroundColor(Color(hex: "e94560").opacity(0.8)).tracking(3)
+                        .font(.system(size: 11)).foregroundColor(Color.accent.opacity(0.8)).tracking(3)
                 }
 
                 VStack(spacing: 12) {
@@ -34,7 +34,7 @@ struct TutorialView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: 300)
                         .padding(.vertical, 16)
-                        .background(Color(hex: "e94560"))
+                        .background(Color.accent)
                         .cornerRadius(10)
                         .shadow(color: Color(hex: "a0001e"), radius: 0, x: 0, y: 4)
                 }
@@ -78,7 +78,7 @@ struct TutorialView: View {
                 .font(.system(size: 14, weight: .black))
                 .foregroundColor(.white)
                 .frame(width: 28, height: 28)
-                .background(Color(hex: "e94560"))
+                .background(Color.accent)
                 .clipShape(Circle())
 
             Text(LocalizedStringKey(text))

@@ -55,7 +55,7 @@ final class GameViewModel: ObservableObject {
     // MARK: – Feedback
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
-    @Published var feedbackColor:   Color = Color(hex: "2ecc71")
+    @Published var feedbackColor:   Color = Color.successGreen
     @Published var showFeedback     = false
 
     // MARK: – Big-win (non-blocking banner + flash)
@@ -147,7 +147,7 @@ final class GameViewModel: ObservableObject {
         isNewDailyRecord  = false
         isGameOver        = false
         showFeedback      = false
-        feedbackColor     = Color(hex: "2ecc71")
+        feedbackColor     = Color.successGreen
         showBigWin        = false
         bigWinFlash       = false
         bigWinID          = 0
@@ -339,7 +339,7 @@ final class GameViewModel: ObservableObject {
         hotStreakCount = 0
         totalCount += 1
 
-        feedbackColor   = Color(hex: "e74c3c")
+        feedbackColor   = Color.errorRed
         feedbackText    = "⏰ 超時！"
         feedbackCorrect = false
         withAnimation(.spring()) { showFeedback = true }
@@ -387,7 +387,7 @@ final class GameViewModel: ObservableObject {
             return
         }
 
-        feedbackColor   = correct ? Color(hex: "2ecc71") : Color(hex: "e74c3c")
+        feedbackColor   = correct ? Color.successGreen : Color.errorRed
         feedbackText    = correct ? "✓ 正確" : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
         feedbackCorrect = correct
         withAnimation(.spring()) { showFeedback = true }
@@ -399,10 +399,10 @@ final class GameViewModel: ObservableObject {
 
     static func comboColor(for streak: Int) -> Color {
         switch streak {
-        case 3..<5:   return Color(hex: "f5a623")   // 進入 combo 但仍在 phase 1
+        case 3..<5:   return Color.gameGold   // 進入 combo 但仍在 phase 1
         case 5..<10:  return Color(hex: "ff6600")   // phase 2
-        case 10..<20: return Color(hex: "ff4400")   // phase 3
-        default:      return Color(hex: "ff1111")   // phase 4 (20+)
+        case 10..<20: return Color.comboDeepOrange   // phase 3
+        default:      return Color.comboBrightRed   // phase 4 (20+)
         }
     }
 

@@ -265,12 +265,12 @@ struct LeaderboardButton: View {
                     .font(.system(size: 12, weight: .bold))
                     .tracking(1)
             }
-            .foregroundColor(Color(hex: "f5a623"))
+            .foregroundColor(Color.gameGold)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
-            .background(Color(hex: "f5a623").opacity(0.1))
+            .background(Color.gameGold.opacity(0.1))
             .overlay(RoundedRectangle(cornerRadius: 7)
-                .stroke(Color(hex: "f5a623").opacity(0.3), lineWidth: 1))
+                .stroke(Color.gameGold.opacity(0.3), lineWidth: 1))
             .cornerRadius(7)
         }
     }

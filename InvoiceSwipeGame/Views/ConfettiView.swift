@@ -23,8 +23,8 @@ struct ConfettiView: View {
                         x: CGFloat.random(in: 0...geo.size.width),
                         screenHeight: geo.size.height,
                         color: [
-                            Color(hex: "ff4444"), Color(hex: "f5a623"),
-                            Color(hex: "2ecc71"), Color(hex: "3498db"),
+                            Color.winSpecial, Color.gameGold,
+                            Color.successGreen, Color(hex: "3498db"),
                             Color(hex: "ff66cc"), .white
                         ].randomElement()!,
                         size:  CGFloat.random(in: 6...14),

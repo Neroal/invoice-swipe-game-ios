@@ -8,7 +8,7 @@ struct LeaderboardView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "0f0f1a").ignoresSafeArea()
+            Color.gameBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header
@@ -38,10 +38,10 @@ struct LeaderboardView: View {
                             Text(mode.displayName)
                                 .font(.system(size: 12, weight: .bold))
                                 .tracking(1)
-                                .foregroundColor(vm.selectedMode == mode ? Color(hex: "0f0f1a") : .white.opacity(0.5))
+                                .foregroundColor(vm.selectedMode == mode ? Color.gameBg : .white.opacity(0.5))
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                .background(vm.selectedMode == mode ? Color(hex: "f5a623") : Color.white.opacity(0.06))
+                                .background(vm.selectedMode == mode ? Color.gameGold : Color.white.opacity(0.06))
                                 .cornerRadius(20)
                         }
                         .buttonStyle(.plain)
@@ -57,7 +57,7 @@ struct LeaderboardView: View {
                 if vm.isLoading {
                     Spacer()
                     ProgressView()
-                        .tint(Color(hex: "f5a623"))
+                        .tint(Color.gameGold)
                     Spacer()
                 } else if let error = vm.errorMessage {
                     Spacer()
@@ -97,7 +97,7 @@ private struct LeaderboardRowView: View {
 
     var rankColor: Color {
         switch entry.rank {
-        case 1: return Color(hex: "f5a623")
+        case 1: return Color.gameGold
         case 2: return Color(hex: "c0c0c0")
         case 3: return Color(hex: "cd7f32")
         default: return .white.opacity(0.4)
@@ -119,12 +119,12 @@ private struct LeaderboardRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.playerName)
                     .font(.system(size: 14, weight: entry.isLocalPlayer ? .heavy : .medium))
-                    .foregroundColor(entry.isLocalPlayer ? Color(hex: "f5a623") : .white)
+                    .foregroundColor(entry.isLocalPlayer ? Color.gameGold : .white)
                     .lineLimit(1)
                 if entry.isLocalPlayer {
                     Text("你")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(Color(hex: "f5a623").opacity(0.7))
+                        .foregroundColor(Color.gameGold.opacity(0.7))
                         .tracking(1)
                 }
             }
@@ -139,7 +139,7 @@ private struct LeaderboardRowView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .background(entry.isLocalPlayer ? Color(hex: "f5a623").opacity(0.06) : Color.clear)
+        .background(entry.isLocalPlayer ? Color.gameGold.opacity(0.06) : Color.clear)
     }
 
     private var rankEmoji: String {
@@ -161,7 +161,7 @@ private struct AvatarView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(isLocalPlayer ? Color(hex: "f5a623").opacity(0.2) : Color.white.opacity(0.08))
+                .fill(isLocalPlayer ? Color.gameGold.opacity(0.2) : Color.white.opacity(0.08))
                 .frame(width: 36, height: 36)
             if let img = image {
                 Image(uiImage: img)
