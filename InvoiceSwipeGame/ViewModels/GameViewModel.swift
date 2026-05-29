@@ -36,6 +36,11 @@ final class GameViewModel: ObservableObject {
     // MARK: – Game over flag (prevents swipes after lives run out)
     @Published var isGameOver = false
 
+    // MARK: – Burn timer (Endless only)
+    @Published var burnTimeLeft:  Double = 8.0
+    @Published var burnTimerFull: Double = 8.0
+    private var burnTimerSub: AnyCancellable?
+
     // MARK: – Card drag
     @Published var dragOffset: CGSize = .zero
     @Published var isAnimating = false
@@ -151,6 +156,8 @@ final class GameViewModel: ObservableObject {
         flyingStartOffset = .zero
         flyingCardID      = nil
 
+        stopBurnTimer()
+
         rng = currentMode == .daily
             ? SeededRNG(seed: SeededRNG.dailySeed())
             : SeededRNG(seed: UInt32.random(in: 1..<UInt32.max))
@@ -183,6 +190,7 @@ final class GameViewModel: ObservableObject {
             showCountdown = false
             phase = .playing
             if currentMode.hasTimer { startTimer() }
+            if currentMode == .endless { startBurnTimer() }
         }
     }
 
@@ -204,6 +212,7 @@ final class GameViewModel: ObservableObject {
     // MARK: – Swipe processing
     func processSwipe(_ dir: SwipeDirection) {
         guard !isAnimating, !cards.isEmpty, phase == .playing, !isGameOver else { return }
+        if currentMode == .endless { burnTimerSub?.cancel() }
         isAnimating = true
         sound.playSwipe()
         haptics.swipe()
@@ -221,22 +230,18 @@ final class GameViewModel: ObservableObject {
         totalCount += 1
         if correct {
             correctCount += 1
-            if currentMode == .endless {
-                currentStreak += 1
-                if currentStreak > bestStreak { bestStreak = currentStreak }
-                let milestones = [3, 5, 8, 10]
-                if milestones.contains(currentStreak) || (currentStreak > 10 && currentStreak % 5 == 0) {
-                    sound.playCombo(streak: currentStreak)
-                    haptics.comboMilestone(streak: currentStreak)
-                }
+            currentStreak += 1
+            if currentStreak > bestStreak { bestStreak = currentStreak }
+            let milestones = [5, 10, 20]
+            if milestones.contains(currentStreak) || (currentStreak > 20 && currentStreak % 10 == 0) {
+                sound.playCombo(streak: currentStreak)
+                haptics.comboMilestone(streak: currentStreak)
             }
             if card.isWinner { hotStreakCount += 1 } else { hotStreakCount = 0 }
         } else {
-            if currentMode == .endless {
-                if currentStreak >= 3 { haptics.comboBreak() }
-                currentStreak = 0
-                handleLifeLost()
-            }
+            if currentStreak >= 3 { haptics.comboBreak() }
+            currentStreak = 0
+            if currentMode == .endless { handleLifeLost() }
             hotStreakCount = 0
         }
 
@@ -257,6 +262,7 @@ final class GameViewModel: ObservableObject {
                 dragOffset  = .zero
                 isAnimating = false
             }
+            if currentMode == .endless && !isGameOver { startBurnTimer() }
         }
 
         // Stage 2（340ms）：清除 flying overlay（卡片已飛離螢幕）
@@ -278,12 +284,82 @@ final class GameViewModel: ObservableObject {
         haptics.lifeLost()
         if lives <= 0 {
             isGameOver = true
+            stopBurnTimer()
             lifeLostTask = Task {
                 try? await Task.sleep(nanoseconds: 420_000_000)
                 guard !Task.isCancelled else { return }
                 endGame()
             }
         }
+    }
+
+    // MARK: – Burn timer (Endless only)
+
+    private func burnDuration(streak: Int) -> Double {
+        switch streak {
+        case 0..<5:   return 8.0
+        case 5..<10:  return 6.0
+        case 10..<20: return 4.0
+        default:      return 3.0
+        }
+    }
+
+    private func startBurnTimer() {
+        guard currentMode == .endless, phase == .playing, !isGameOver else { return }
+        burnTimerSub?.cancel()
+        let duration = burnDuration(streak: currentStreak)
+        burnTimerFull = duration
+        burnTimeLeft  = duration
+        burnTimerSub = Timer.publish(every: 0.05, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                guard let self, self.phase == .playing, !self.isGameOver else { return }
+                self.burnTimeLeft = max(0, self.burnTimeLeft - 0.05)
+                if self.burnTimeLeft <= 0 {
+                    self.burnTimerSub?.cancel()
+                    self.handleBurnTimeout()
+                }
+            }
+    }
+
+    private func stopBurnTimer() {
+        burnTimerSub?.cancel()
+        burnTimerSub = nil
+        burnTimeLeft  = 8.0
+        burnTimerFull = 8.0
+    }
+
+    private func handleBurnTimeout() {
+        guard !cards.isEmpty, phase == .playing, !isGameOver else { return }
+
+        sound.playWrong()
+        haptics.wrong()
+        if currentStreak >= 3 { haptics.comboBreak() }
+        currentStreak = 0
+        hotStreakCount = 0
+        totalCount += 1
+
+        feedbackColor   = Color(hex: "e74c3c")
+        feedbackText    = "⏰ 超時！"
+        feedbackCorrect = false
+        withAnimation(.spring()) { showFeedback = true }
+        Task {
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            withAnimation { showFeedback = false }
+        }
+
+        handleLifeLost()
+
+        var t = Transaction(animation: nil)
+        t.disablesAnimations = true
+        withTransaction(t) {
+            if !cards.isEmpty { cards.removeFirst() }
+            while cards.count < 6 {
+                cards.append(PrizeChecker.generateInvoice(prizes: prizes, rng: &rng, hotStreak: hotStreakCount))
+            }
+        }
+
+        if !isGameOver { startBurnTimer() }
     }
 
     // MARK: – Feedback
@@ -298,8 +374,8 @@ final class GameViewModel: ObservableObject {
             haptics.wrong()
         }
 
-        // 無限模式 streak ≥ 3 → 顯示 COMBO ×N（對應顏色）
-        if currentMode == .endless && correct && currentStreak >= 3 {
+        // streak ≥ 3 → 顯示 COMBO ×N（對應顏色），全模式
+        if correct && currentStreak >= 3 {
             feedbackText    = "COMBO ×\(currentStreak)"
             feedbackCorrect = true
             feedbackColor   = Self.comboColor(for: currentStreak)
@@ -323,10 +399,10 @@ final class GameViewModel: ObservableObject {
 
     static func comboColor(for streak: Int) -> Color {
         switch streak {
-        case 3..<5:  return Color(hex: "f5a623")
-        case 5..<8:  return Color(hex: "ff6600")
-        case 8..<10: return Color(hex: "ff4400")
-        default:     return Color(hex: "ff1111")
+        case 3..<5:   return Color(hex: "f5a623")   // 進入 combo 但仍在 phase 1
+        case 5..<10:  return Color(hex: "ff6600")   // phase 2
+        case 10..<20: return Color(hex: "ff4400")   // phase 3
+        default:      return Color(hex: "ff1111")   // phase 4 (20+)
         }
     }
 
@@ -380,6 +456,7 @@ final class GameViewModel: ObservableObject {
         guard phase == .playing || phase == .countdown else { return }
 
         timerSub?.cancel()
+        stopBurnTimer()
         // 無限模式由 playLifeLost() 已給過音效，不重複播放「時間到」
         if currentMode.hasTimer {
             sound.playTimeUp()
@@ -388,7 +465,7 @@ final class GameViewModel: ObservableObject {
 
         if currentMode == .daily {
             daily.recordAttempt()
-            isNewDailyRecord = daily.tryUpdateBest(totalPrizeAmount)
+            isNewDailyRecord = daily.tryUpdateBest(dailyFinalScore)
         }
         dailyBestScore = daily.bestScore()
 
@@ -407,7 +484,7 @@ final class GameViewModel: ObservableObject {
         case .normal:
             gc.submitScore(totalPrizeAmount, to: .normal)
         case .daily:
-            gc.submitScore(totalPrizeAmount, to: .daily)
+            gc.submitScore(dailyFinalScore, to: .daily)
         case .endless:
             gc.submitScore(bestStreak * 1000 + totalCount, to: .endless)
         }
@@ -417,6 +494,7 @@ final class GameViewModel: ObservableObject {
 
     func goHome() {
         timerSub?.cancel()
+        stopBurnTimer()
         countdownTask?.cancel()
         lifeLostTask?.cancel()
         lifeLostTask = nil
@@ -446,6 +524,12 @@ final class GameViewModel: ObservableObject {
         totalCount > 0 ? Int(Double(correctCount) / Double(totalCount) * 100) : 0
     }
 
+    var dailyFinalScore: Int {
+        totalPrizeAmount > 0 ? Int(Double(totalPrizeAmount) * Double(accuracy) / 100.0) : 0
+    }
+
+    var dailyFinalScoreString: String { Self.formatPrize(dailyFinalScore) }
+
     var totalPrizeAmountString: String { Self.formatPrize(totalPrizeAmount) }
     var dailyBestPrizeString:   String { Self.formatPrize(dailyBestScore)   }
 
@@ -464,14 +548,5 @@ final class GameViewModel: ObservableObject {
         let f = NumberFormatter()
         f.numberStyle = .decimal
         return "NT$ \(f.string(from: NSNumber(value: amount)) ?? "\(amount)")"
-    }
-
-    var currentPeriodLabel: String {
-        let d = Date()
-        let c = Calendar.current
-        let roc = c.component(.year, from: d) - 1911
-        let m   = c.component(.month, from: d)
-        let ps  = m % 2 == 0 ? m - 1 : m
-        return "\(roc)年 \(ps)–\(ps + 1)月 中獎號碼"
     }
 }

@@ -4,6 +4,7 @@ import StoreKit
 struct ResultView: View {
     @EnvironmentObject var vm: GameViewModel
     @Environment(\.requestReview) private var requestReview
+    @State private var formulaPhase = 0
 
     var body: some View {
         ZStack {
@@ -37,6 +38,21 @@ struct ResultView: View {
 
                 // Stats card
                 statsCard
+                    .onAppear {
+                        formulaPhase = 0
+                        if vm.currentMode == .daily {
+                            Task {
+                                try? await Task.sleep(nanoseconds: 300_000_000)
+                                withAnimation(.spring(dampingFraction: 0.7)) { formulaPhase = 1 }
+                                try? await Task.sleep(nanoseconds: 550_000_000)
+                                withAnimation(.spring(dampingFraction: 0.7)) { formulaPhase = 2 }
+                                try? await Task.sleep(nanoseconds: 550_000_000)
+                                withAnimation(.spring(dampingFraction: 0.7)) { formulaPhase = 3 }
+                                try? await Task.sleep(nanoseconds: 700_000_000)
+                                withAnimation(.easeIn(duration: 0.3)) { formulaPhase = 4 }
+                            }
+                        }
+                    }
 
                 // Buttons
                 VStack(spacing: 10) {
@@ -82,21 +98,35 @@ struct ResultView: View {
             if vm.currentMode == .endless {
                 statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color(hex: "a78bfa"))
                 statRow(label: "判斷張數",    value: "\(vm.totalCount)", color: Color(hex: "f5a623"))
+            } else if vm.currentMode == .daily {
+                statRow(label: "原始獎金", value: vm.totalPrizeAmountString, color: Color(hex: "f5a623"))
+                    .opacity(formulaPhase >= 1 ? 1 : 0)
+                    .offset(y: formulaPhase >= 1 ? 0 : 12)
+                    .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 1)
+                statRow(label: "× 準確率", value: "\(vm.accuracy)%", color: Color(hex: "4fc3f7"))
+                    .opacity(formulaPhase >= 2 ? 1 : 0)
+                    .offset(y: formulaPhase >= 2 ? 0 : 12)
+                    .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 2)
+                statRow(label: "= 最終得分", value: vm.dailyFinalScoreString, color: Color(hex: "2ecc71"))
+                    .opacity(formulaPhase >= 3 ? 1 : 0)
+                    .offset(y: formulaPhase >= 3 ? 0 : 12)
+                    .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 3)
+                statRow(label: "今日最高", value: vm.dailyBestPrizeString, color: Color(hex: "a78bfa"))
+                    .opacity(formulaPhase >= 4 ? 1 : 0)
+                    .animation(.easeIn(duration: 0.3), value: formulaPhase >= 4)
+                Text(vm.dailyAttemptsText)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(
+                        vm.canPlayDaily
+                            ? Color(hex: "4fc3f7")
+                            : Color(hex: "e74c3c")
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .opacity(formulaPhase >= 4 ? 1 : 0)
             } else {
                 statRow(label: "本局中獎", value: vm.totalPrizeAmountString, color: Color(hex: "f5a623"))
                 statRow(label: "答對張數", value: "\(vm.correctCount)",       color: Color(hex: "2ecc71"))
                 statRow(label: "答錯張數", value: "\(vm.wrongCount)",          color: Color(hex: "e74c3c"))
-                if vm.currentMode == .daily {
-                    statRow(label: "今日最高", value: vm.dailyBestPrizeString, color: Color(hex: "a78bfa"))
-                    Text(vm.dailyAttemptsText)
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(
-                            vm.canPlayDaily
-                                ? Color(hex: "4fc3f7")
-                                : Color(hex: "e74c3c")
-                        )
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
 
             // Accuracy bar

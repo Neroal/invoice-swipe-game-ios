@@ -13,15 +13,16 @@ struct GameView: View {
                 VStack(spacing: 0) {
                     prizePanel
                     feedbackBar
+                    if vm.currentMode == .endless {
+                        burnTimerBar
+                    }
                     cardArea(cardW: cardW, screenWidth: geo.size.width)
                 }
 
-                // Endless combo: 邊緣隨連擊升溫發光
-                if vm.currentMode == .endless {
-                    streakEdgeGlow
-                        .ignoresSafeArea()
-                        .allowsHitTesting(false)
-                }
+                // 邊緣隨連擊升溫發光，全模式
+                streakEdgeGlow
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
             }
         }
     }
@@ -45,12 +46,7 @@ struct GameView: View {
     // MARK: – Prize panel
     private var prizePanel: some View {
         VStack(spacing: 7) {
-            // 期別 + HUD
             HStack {
-                Text(vm.currentPeriodLabel)
-                    .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.45))
-                    .tracking(1)
                 Spacer()
                 hudRow
             }
@@ -302,16 +298,40 @@ struct GameView: View {
         }
     }
 
+    // MARK: – Burn timer bar (Endless only)
+
+    private var burnTimerBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12))
+                let ratio = vm.burnTimerFull > 0 ? vm.burnTimeLeft / vm.burnTimerFull : 0
+                let clamped = max(0.0, min(1.0, ratio))
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(burnBarColor(ratio: ratio))
+                    .frame(width: geo.size.width * CGFloat(clamped))
+                    .animation(.linear(duration: 0.05), value: vm.burnTimeLeft)
+            }
+        }
+        .frame(height: 4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+    }
+
+    private func burnBarColor(ratio: Double) -> Color {
+        if ratio > 0.5  { return Color(hex: "2ecc71") }
+        if ratio > 0.25 { return Color(hex: "f5a623") }
+        return Color(hex: "e94560")
+    }
+
     // MARK: – Combo UI helpers
 
     private func comboChip(streak: Int) -> some View {
         let color: Color = {
             switch streak {
-            case 0..<3:  return Color(hex: "a78bfa")
-            case 3..<5:  return Color(hex: "f5a623")
-            case 5..<8:  return Color(hex: "ff6600")
-            case 8..<10: return Color(hex: "ff4400")
-            default:     return Color(hex: "ff1111")
+            case 0..<5:   return Color(hex: "a78bfa")   // phase 1
+            case 5..<10:  return Color(hex: "f5a623")   // phase 2
+            case 10..<20: return Color(hex: "ff4400")   // phase 3
+            default:      return Color(hex: "ff1111")   // phase 4
             }
         }()
         return VStack(spacing: 1) {
@@ -338,11 +358,10 @@ struct GameView: View {
         let streak = vm.currentStreak
         let (glowColor, glowOpacity): (Color, Double) = {
             switch streak {
-            case 0..<3:  return (Color(hex: "f5a623"), 0.0)   // invisible, smooth fade-in at 3
-            case 3..<5:  return (Color(hex: "f5a623"), 0.35)
-            case 5..<8:  return (Color(hex: "ff6600"), 0.55)
-            case 8..<10: return (Color(hex: "ff3300"), 0.70)
-            default:     return (Color(hex: "ff1111"), 0.85)
+            case 0..<5:   return (Color(hex: "f5a623"), 0.0)    // phase 1: 無發光
+            case 5..<10:  return (Color(hex: "f5a623"), 0.40)   // phase 2
+            case 10..<20: return (Color(hex: "ff4400"), 0.65)   // phase 3
+            default:      return (Color(hex: "ff1111"), 0.85)   // phase 4
             }
         }()
         return Rectangle()

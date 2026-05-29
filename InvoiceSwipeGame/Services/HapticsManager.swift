@@ -76,22 +76,20 @@ final class HapticsManager {
     /// 時間到
     func timeUp() { notif.notificationOccurred(.warning) }
 
-    /// Combo 里程碑：震動強度隨 streak 升高
+    /// Combo 里程碑：震動強度隨 phase 升高（5 / 10 / 20+）
     func comboMilestone(streak: Int) {
         switch streak {
-        case ..<5:
-            medium.impactOccurred(intensity: 0.6)
-        case 5..<8:
+        case 5:     // phase 2
             medium.impactOccurred(intensity: 0.8)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
                 self?.medium.impactOccurred(intensity: 0.6)
             }
-        case 8..<10:
+        case 10:    // phase 3
             heavy.impactOccurred(intensity: 0.7)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
                 self?.heavy.impactOccurred(intensity: 0.85)
             }
-        default: // 10+
+        default:    // phase 4 (20+) 及後續每 10 連
             heavy.impactOccurred(intensity: 1.0)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
                 self?.heavy.impactOccurred(intensity: 1.0)
