@@ -5,7 +5,6 @@ struct InvoiceCardView: View {
     let dragOffset: CGSize
     let isTop: Bool
 
-    // Swipe overlays
     private var rightOpacity: Double {
         guard isTop else { return 0 }
         return dragOffset.width > 10 ? Double(min(abs(dragOffset.width) / 100, 1)) * 0.9 : 0
@@ -17,51 +16,74 @@ struct InvoiceCardView: View {
 
     var body: some View {
         ZStack {
-            // Card background
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color(hex: "fef9ee"))
 
             VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text("統一發票")
-                        .font(.system(size: 13, weight: .bold))
-                        .tracking(1)
-                    Spacer()
-                    Text(invoice.dateString)
-                        .font(.system(size: 11))
-                        .opacity(0.75)
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 9)
-                .background(Color(hex: "cc2200"))
+                // 紅色標題列
+                Text("統 一 發 票")
+                    .font(.system(size: 14, weight: .bold))
+                    .tracking(2)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 9)
+                    .background(Color(hex: "cc2200"))
 
-                // Body
-                VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("發票號碼")
-                            .font(.system(size: 9))
-                            .foregroundColor(Color(hex: "aaaaaa"))
-                            .tracking(2)
-                        Text(invoice.number)
-                            .font(.system(size: 40, weight: .black, design: .monospaced))
-                            .tracking(6)
-                            .foregroundColor(Color(hex: "1a1a2e"))
-                            .minimumScaleFactor(0.5)
-                            .lineLimit(1)
-                    }
-                    Text("\(invoice.seller)　NT$ \(invoice.amount.formatted())")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "999999"))
+                // 發票號碼（最大最顯眼，垂直方向撐滿剩餘空間）
+                VStack(spacing: 4) {
+                    Spacer(minLength: 14)
+                    Text("發 票 號 碼")
+                        .font(.system(size: 8))
+                        .foregroundColor(Color(hex: "aaaaaa"))
+                        .tracking(3)
+                    Text(invoice.displayNumber)
+                        .font(.system(size: 32, weight: .black, design: .monospaced))
+                        .tracking(2)
+                        .foregroundColor(Color(hex: "1a1a2e"))
+                        .minimumScaleFactor(0.4)
+                        .lineLimit(1)
+                        .padding(.horizontal, 8)
+                    Spacer(minLength: 14)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-                .padding(.bottom, 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                ReceiptDashedLine()
+
+                // 賣方資訊
+                VStack(alignment: .leading, spacing: 5) {
+                    infoRow(label: "賣方名稱", value: invoice.seller)
+                    infoRow(label: "統一編號", value: invoice.taxId)
+                    infoRow(label: "品名", value: invoice.itemName)
+                }
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+
+                ReceiptDashedLine()
+
+                // 金額明細
+                VStack(spacing: 4) {
+                    amountRow(label: "小計", amount: invoice.subtotal)
+                    amountRow(label: "稅額(5%)", amount: invoice.tax)
+                    Rectangle()
+                        .fill(Color(hex: "dddddd"))
+                        .frame(height: 1)
+                        .padding(.vertical, 2)
+                    amountRow(label: "總計", amount: invoice.amount, bold: true)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 9)
+
+                ReceiptDashedLine()
+
+                // 裝飾性條碼
+                ReceiptBarcodeView()
+                    .frame(height: 24)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+
             }
 
-            // Win overlay
             if rightOpacity > 0 {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(hex: "2ecc71").opacity(rightOpacity))
@@ -70,8 +92,6 @@ struct InvoiceCardView: View {
                     .foregroundColor(.white)
                     .opacity(rightOpacity)
             }
-
-            // Lose overlay
             if leftOpacity > 0 {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(hex: "e74c3c").opacity(leftOpacity))
@@ -82,6 +102,70 @@ struct InvoiceCardView: View {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.55), radius: 18, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.55), radius: 20, x: 0, y: 10)
+    }
+
+    private func infoRow(label: String, value: String) -> some View {
+        HStack(spacing: 6) {
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundColor(Color(hex: "999999"))
+                .frame(width: 52, alignment: .leading)
+            Text(value)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(Color(hex: "333333"))
+                .lineLimit(1)
+            Spacer()
+        }
+    }
+
+    private func amountRow(label: String, amount: Int, bold: Bool = false) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundColor(Color(hex: "888888"))
+            Spacer()
+            Text("NT$\(amount.formatted())")
+                .font(bold
+                    ? .system(size: 11, weight: .bold, design: .monospaced)
+                    : .system(size: 9, design: .monospaced))
+                .foregroundColor(bold ? Color(hex: "1a1a2e") : Color(hex: "555555"))
+        }
+    }
+}
+
+private struct ReceiptDashedLine: View {
+    var body: some View {
+        GeometryReader { geo in
+            Path { p in
+                p.move(to: CGPoint(x: 8, y: 0.5))
+                p.addLine(to: CGPoint(x: geo.size.width - 8, y: 0.5))
+            }
+            .stroke(Color(hex: "cccccc"), style: StrokeStyle(lineWidth: 1, dash: [3, 2]))
+        }
+        .frame(height: 1)
+    }
+}
+
+private struct ReceiptBarcodeView: View {
+    private static let widths: [CGFloat] = [
+        2, 1, 3, 1, 2, 1, 1, 2, 3, 1,
+        2, 1, 1, 3, 1, 2, 1, 1, 3, 2,
+        1, 1, 2, 3, 1, 1, 4, 1, 2, 1,
+        1, 3, 1, 2, 1, 1, 2, 3, 1, 2
+    ]
+    private static let totalUnits: CGFloat = widths.reduce(0, +)
+
+    var body: some View {
+        GeometryReader { geo in
+            let scale = geo.size.width / Self.totalUnits
+            HStack(spacing: 0) {
+                ForEach(Array(Self.widths.enumerated()), id: \.offset) { idx, w in
+                    Rectangle()
+                        .fill(idx % 2 == 0 ? Color.black.opacity(0.7) : Color.clear)
+                        .frame(width: w * scale)
+                }
+            }
+        }
     }
 }

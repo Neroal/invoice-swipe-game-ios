@@ -2,11 +2,14 @@ import SwiftUI
 
 struct GameView: View {
     @EnvironmentObject var vm: GameViewModel
-    private let cardH: CGFloat = 200
-
     var body: some View {
         GeometryReader { geo in
-            let cardW = min(300, geo.size.width * 0.88)
+            let cardW = geo.size.width * 0.75
+            // 動態計算卡片高度：填滿 HUD ↔ 按鈕之間的空間，上下各留 50pt
+            let burnH: CGFloat = vm.currentMode == .endless ? 12 : 0
+            let reserved: CGFloat = 145 + 38 + burnH + 75 + 100   // prizePanel + feedbackBar + burnBar + buttons + gaps
+            let cardH = max(250, geo.size.height - reserved)
+
             ZStack {
                 Color(hex: "0f0f1a").ignoresSafeArea()
 
@@ -16,7 +19,12 @@ struct GameView: View {
                     if vm.currentMode == .endless {
                         burnTimerBar
                     }
-                    cardArea(cardW: cardW, screenWidth: geo.size.width)
+                    Color.clear.frame(height: 50)
+                    invoiceArea(cardW: cardW, cardH: cardH, screenWidth: geo.size.width)
+                    Color.clear.frame(height: 50)
+                    actionButtons
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 28)
                 }
 
                 // 邊緣隨連擊升溫發光，全模式
@@ -178,10 +186,9 @@ struct GameView: View {
         .cornerRadius(6)
     }
 
-    // MARK: – Card area
-    private func cardArea(cardW: CGFloat, screenWidth: CGFloat) -> some View {
+    // MARK: – Invoice area
+    private func invoiceArea(cardW: CGFloat, cardH: CGFloat, screenWidth: CGFloat) -> some View {
         ZStack {
-            // Side indicators
             HStack {
                 sideIndicator(isRight: false)
                 Spacer()
@@ -189,51 +196,28 @@ struct GameView: View {
             }
             .padding(.horizontal, 12)
 
-            // Card stack
-            ZStack {
-                ForEach(Array(vm.cards.prefix(3).enumerated().reversed()), id: \.element.id) { idx, card in
-                    let isTop = idx == 0
-                    cardView(card: card, index: idx, isTop: isTop, cardW: cardW)
-                }
-                // Flying card overlay：飛出動畫獨立執行，不卡輸入
-                if let flying = vm.flyingCard, let dir = vm.flyingDir {
-                    FlyingCardView(
-                        card:        flying,
-                        direction:   dir,
-                        startOffset: vm.flyingStartOffset,
-                        cardW:       cardW,
-                        cardH:       cardH,
-                        screenWidth: screenWidth
-                    )
-                }
+            if let card = vm.cards.first {
+                InvoiceCardView(invoice: card, dragOffset: vm.dragOffset, isTop: true)
+                    .frame(width: cardW, height: cardH)
+                    .offset(vm.dragOffset)
+                    .rotationEffect(.degrees(Double(vm.dragOffset.width) * 0.04))
+                    .opacity(card.id == vm.flyingCard?.id ? 0 : 1)
+                    .animation(.interactiveSpring(), value: vm.dragOffset)
+                    .gesture(dragGesture)
             }
-            .frame(width: cardW, height: cardH)
 
-            // Action buttons
-            actionButtons
-                .padding(.horizontal, 20)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, 20)
+            if let flying = vm.flyingCard, let dir = vm.flyingDir {
+                FlyingCardView(
+                    card:        flying,
+                    direction:   dir,
+                    startOffset: vm.flyingStartOffset,
+                    cardW:       cardW,
+                    cardH:       cardH,
+                    screenWidth: screenWidth
+                )
+            }
         }
-    }
-
-    private func cardView(card: Invoice, index: Int, isTop: Bool, cardW: CGFloat) -> some View {
-        // 所有卡片在同一個位置，只用極淡的 brightness 暗示還有下一張
-        // 這樣 index 改變時不會有任何位移動畫
-        return InvoiceCardView(
-            invoice: card,
-            dragOffset: isTop ? vm.dragOffset : .zero,
-            isTop: isTop
-        )
-        .frame(width: cardW, height: cardH)
-        .brightness(isTop ? 0 : -0.08 * Double(index))
-        .offset(isTop ? vm.dragOffset : .zero)
-        .rotationEffect(.degrees(isTop ? Double(vm.dragOffset.width) * 0.06 : 0))
-        // 只隱藏「正在飛走的那張」，新 top card 在 cards.removeFirst() 後立刻顯示
-        .opacity(card.id == vm.flyingCard?.id ? 0 : 1)
-        .animation(.interactiveSpring(), value: vm.dragOffset)
-        .zIndex(Double(10 - index))
-        .gesture(isTop ? dragGesture : nil)
+        .frame(height: cardH)
     }
 
     private var dragGesture: some Gesture {
