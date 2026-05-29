@@ -533,10 +533,15 @@ final class GameViewModel: ObservableObject {
     var totalPrizeAmountString: String { Self.formatPrize(totalPrizeAmount) }
     var dailyBestPrizeString:   String { Self.formatPrize(dailyBestScore)   }
 
-    /// HUD 用縮寫：≥ 1萬 改用萬單位，結果頁仍用完整格式
-    var hudPrizeString: String {
+    private static let decimalFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.numberStyle = .decimal
+        return f
+    }()
+
+    /// HUD 用縮寫：≥ 1萬 改用萬單位，結果頁仍用完整格式
+    var hudPrizeString: String {
+        let f = Self.decimalFormatter
         if totalPrizeAmount >= 10_000 {
             let wan = totalPrizeAmount / 10_000
             return "NT$ \(f.string(from: NSNumber(value: wan)) ?? "\(wan)")萬"
@@ -545,8 +550,7 @@ final class GameViewModel: ObservableObject {
     }
 
     static func formatPrize(_ amount: Int) -> String {
-        let f = NumberFormatter()
-        f.numberStyle = .decimal
-        return "NT$ \(f.string(from: NSNumber(value: amount)) ?? "\(amount)")"
+        let formatted = decimalFormatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
+        return "NT$ \(formatted)"
     }
 }
