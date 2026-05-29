@@ -56,9 +56,9 @@ final class GameViewModel: ObservableObject {
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
     var feedbackColor: Color {
-        guard feedbackCorrect else { return Color(hex: "e74c3c") }
+        guard feedbackCorrect else { return Color.errorRed }
         if currentStreak >= 3 { return Self.comboColor(for: currentStreak) }
-        return Color(hex: "2ecc71")
+        return Color.successGreen
     }
     @Published var showFeedback     = false
 
@@ -401,10 +401,10 @@ final class GameViewModel: ObservableObject {
 
     static func comboColor(for streak: Int) -> Color {
         switch streak {
-        case 3..<5:   return Color(hex: "f5a623")   // 進入 combo 但仍在 phase 1
+        case 3..<5:   return Color.gameGold   // 進入 combo 但仍在 phase 1
         case 5..<10:  return Color(hex: "ff6600")   // phase 2
-        case 10..<20: return Color(hex: "ff4400")   // phase 3
-        default:      return Color(hex: "ff1111")   // phase 4 (20+)
+        case 10..<20: return Color.comboDeepOrange   // phase 3
+        default:      return Color.comboBrightRed   // phase 4 (20+)
         }
     }
 

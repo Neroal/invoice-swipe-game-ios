@@ -11,7 +11,7 @@ struct GameView: View {
             let cardH = max(250, geo.size.height - reserved)
 
             ZStack {
-                Color(hex: "0f0f1a").ignoresSafeArea()
+                Color.gameBg.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     prizePanel
@@ -71,7 +71,7 @@ struct GameView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color(hex: "1a1a2e"))
+        .background(Color.panelBg)
         .overlay(Rectangle().frame(height: 1).foregroundColor(.white.opacity(0.06)), alignment: .bottom)
     }
 
@@ -144,7 +144,7 @@ struct GameView: View {
                     .tracking(2)
                 Text("\(vm.timeLeft)")
                     .font(.system(size: 22, weight: .black, design: .monospaced))
-                    .foregroundColor(vm.timeLeft <= 5 ? Color(hex: "e94560") : Color(hex: "f5a623"))
+                    .foregroundColor(vm.timeLeft <= 5 ? Color.accent : Color.gameGold)
             }
             .frame(width: 68)
 
@@ -159,7 +159,7 @@ struct GameView: View {
                     .tracking(2)
                 Text(vm.hudPrizeString)
                     .font(.system(size: 22, weight: .black, design: .monospaced))
-                    .foregroundColor(Color(hex: "2ecc71"))
+                    .foregroundColor(Color.successGreen)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
             }
@@ -178,7 +178,7 @@ struct GameView: View {
             ForEach(0..<3, id: \.self) { i in
                 Image(systemName: i < vm.lives ? "heart.fill" : "heart")
                     .font(.system(size: 14))
-                    .foregroundColor(i < vm.lives ? Color(hex: "e74c3c") : Color.white.opacity(0.2))
+                    .foregroundColor(i < vm.lives ? Color.errorRed : Color.white.opacity(0.2))
             }
         }
         .padding(.horizontal, 10)
@@ -249,7 +249,7 @@ struct GameView: View {
                 .font(.caption2).fontWeight(.bold)
                 .tracking(1)
         }
-        .foregroundColor(isRight ? Color(hex: "2ecc71") : Color(hex: "e74c3c"))
+        .foregroundColor(isRight ? Color.successGreen : Color.errorRed)
         .opacity(triggered ? 1 : 0.18)
         .animation(.easeOut(duration: 0.15), value: triggered)
     }
@@ -260,24 +260,24 @@ struct GameView: View {
                 Text("✕ 未中獎")
                     .font(.system(size: 13, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(Color(hex: "e74c3c"))
+                    .foregroundColor(Color.errorRed)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(hex: "e74c3c").opacity(0.12))
+                    .background(Color.errorRed.opacity(0.12))
                     .overlay(RoundedRectangle(cornerRadius: 50)
-                        .stroke(Color(hex: "e74c3c").opacity(0.35), lineWidth: 1.5))
+                        .stroke(Color.errorRed.opacity(0.35), lineWidth: 1.5))
                     .cornerRadius(50)
             }
             Button { vm.processSwipe(.right) } label: {
                 Text("中獎 ✓")
                     .font(.system(size: 13, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(Color(hex: "2ecc71"))
+                    .foregroundColor(Color.successGreen)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(hex: "2ecc71").opacity(0.12))
+                    .background(Color.successGreen.opacity(0.12))
                     .overlay(RoundedRectangle(cornerRadius: 50)
-                        .stroke(Color(hex: "2ecc71").opacity(0.35), lineWidth: 1.5))
+                        .stroke(Color.successGreen.opacity(0.35), lineWidth: 1.5))
                     .cornerRadius(50)
             }
         }
@@ -303,9 +303,9 @@ struct GameView: View {
     }
 
     private func burnBarColor(ratio: Double) -> Color {
-        if ratio > 0.5  { return Color(hex: "2ecc71") }
-        if ratio > 0.25 { return Color(hex: "f5a623") }
-        return Color(hex: "e94560")
+        if ratio > 0.5  { return Color.successGreen }
+        if ratio > 0.25 { return Color.gameGold }
+        return Color.accent
     }
 
     // MARK: – Combo UI helpers
@@ -313,10 +313,10 @@ struct GameView: View {
     private func comboChip(streak: Int) -> some View {
         let color: Color = {
             switch streak {
-            case 0..<5:   return Color(hex: "a78bfa")   // phase 1
-            case 5..<10:  return Color(hex: "f5a623")   // phase 2
-            case 10..<20: return Color(hex: "ff4400")   // phase 3
-            default:      return Color(hex: "ff1111")   // phase 4
+            case 0..<5:   return Color.comboPurple   // phase 1
+            case 5..<10:  return Color.gameGold   // phase 2
+            case 10..<20: return Color.comboDeepOrange   // phase 3
+            default:      return Color.comboBrightRed   // phase 4
             }
         }()
         return VStack(spacing: 1) {
@@ -343,10 +343,10 @@ struct GameView: View {
         let streak = vm.currentStreak
         let (glowColor, glowOpacity): (Color, Double) = {
             switch streak {
-            case 0..<5:   return (Color(hex: "f5a623"), 0.0)    // phase 1: 無發光
-            case 5..<10:  return (Color(hex: "f5a623"), 0.40)   // phase 2
-            case 10..<20: return (Color(hex: "ff4400"), 0.65)   // phase 3
-            default:      return (Color(hex: "ff1111"), 0.85)   // phase 4
+            case 0..<5:   return (Color.gameGold, 0.0)    // phase 1: 無發光
+            case 5..<10:  return (Color.gameGold, 0.40)   // phase 2
+            case 10..<20: return (Color.comboDeepOrange, 0.65)   // phase 3
+            default:      return (Color.comboBrightRed, 0.85)   // phase 4
             }
         }()
         return Rectangle()

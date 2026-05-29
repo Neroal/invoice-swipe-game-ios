@@ -6,14 +6,14 @@ struct BigWinOverlayView: View {
 
     private var tierAccent: Color {
         switch tier {
-        case .special: return Color(hex: "ff4444")
-        case .grand:   return Color(hex: "ffaa00")
-        case .first:   return Color(hex: "00ffaa")
+        case .special: return Color.winSpecial
+        case .grand:   return Color.winGrand
+        case .first:   return Color.winDefault
         case .second:  return Color(hex: "c084fc")
         case .third:   return Color(hex: "60a5fa")
         case .fourth:  return Color(hex: "2dd4bf")
         case .fifth:   return Color(hex: "fbbf24")
-        case .sixth:   return Color(hex: "f5a623")
+        case .sixth:   return Color.gameGold
         }
     }
 
@@ -49,9 +49,9 @@ struct ParticleBurstView: View {
 
     private var burstColor: Color {
         switch tier {
-        case .special: return Color(hex: "ff4444")
-        case .grand:   return Color(hex: "ffaa00")
-        default:       return Color(hex: "00ffaa")
+        case .special: return Color.winSpecial
+        case .grand:   return Color.winGrand
+        default:       return Color.winDefault
         }
     }
 

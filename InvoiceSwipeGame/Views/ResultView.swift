@@ -10,14 +10,14 @@ struct ResultView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "0f0f1a").ignoresSafeArea()
+            Color.gameBg.ignoresSafeArea()
 
             VStack(spacing: 20) {
                 // Title
                 Text(titleText)
                     .font(.system(size: 52, weight: .black))
                     .foregroundColor(.white)
-                    .shadow(color: Color(hex: "f5a623"), radius: 0, x: 3, y: 3)
+                    .shadow(color: Color.gameGold, radius: 0, x: 3, y: 3)
                     .tracking(4)
 
                 // New record banner
@@ -31,7 +31,7 @@ struct ResultView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 22).padding(.vertical, 7)
                         .background(
-                            LinearGradient(colors: [Color(hex: "f5a623"), Color(hex: "e94560")],
+                            LinearGradient(colors: [Color.gameGold, Color.accent],
                                            startPoint: .leading, endPoint: .trailing)
                         )
                         .cornerRadius(20)
@@ -72,7 +72,7 @@ struct ResultView: View {
                             .tracking(3)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity).padding(.vertical, 15)
-                            .background(replayDisabled ? Color.white.opacity(0.1) : Color(hex: "e94560"))
+                            .background(replayDisabled ? Color.white.opacity(0.1) : Color.accent)
                             .cornerRadius(10)
                             .shadow(color: replayDisabled ? .clear : Color(hex: "a0001e"),
                                     radius: 0, x: 0, y: 4)
@@ -106,37 +106,37 @@ struct ResultView: View {
     private var statsCard: some View {
         VStack(spacing: 18) {
             if vm.currentMode == .endless {
-                statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color(hex: "a78bfa"))
-                statRow(label: "判斷張數",    value: "\(vm.totalCount)", color: Color(hex: "f5a623"))
+                statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color.comboPurple)
+                statRow(label: "判斷張數",    value: "\(vm.totalCount)", color: Color.gameGold)
             } else if vm.currentMode == .daily {
-                statRow(label: "原始獎金", value: vm.totalPrizeAmountString, color: Color(hex: "f5a623"))
+                statRow(label: "原始獎金", value: vm.totalPrizeAmountString, color: Color.gameGold)
                     .opacity(formulaPhase >= 1 ? 1 : 0)
                     .offset(y: formulaPhase >= 1 ? 0 : 12)
                     .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 1)
-                statRow(label: "× 準確率", value: "\(vm.accuracy)%", color: Color(hex: "4fc3f7"))
+                statRow(label: "× 準確率", value: "\(vm.accuracy)%", color: Color.dailyBlue)
                     .opacity(formulaPhase >= 2 ? 1 : 0)
                     .offset(y: formulaPhase >= 2 ? 0 : 12)
                     .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 2)
-                statRow(label: "= 最終得分", value: vm.dailyFinalScoreString, color: Color(hex: "2ecc71"))
+                statRow(label: "= 最終得分", value: vm.dailyFinalScoreString, color: Color.successGreen)
                     .opacity(formulaPhase >= 3 ? 1 : 0)
                     .offset(y: formulaPhase >= 3 ? 0 : 12)
                     .animation(.spring(dampingFraction: 0.7), value: formulaPhase >= 3)
-                statRow(label: "今日最高", value: vm.dailyBestPrizeString, color: Color(hex: "a78bfa"))
+                statRow(label: "今日最高", value: vm.dailyBestPrizeString, color: Color.comboPurple)
                     .opacity(formulaPhase >= 4 ? 1 : 0)
                     .animation(.easeIn(duration: 0.3), value: formulaPhase >= 4)
                 Text(vm.dailyAttemptsText)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(
                         vm.canPlayDaily
-                            ? Color(hex: "4fc3f7")
-                            : Color(hex: "e74c3c")
+                            ? Color.dailyBlue
+                            : Color.errorRed
                     )
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .opacity(formulaPhase >= 4 ? 1 : 0)
             } else {
-                statRow(label: "本局中獎", value: vm.totalPrizeAmountString, color: Color(hex: "f5a623"))
-                statRow(label: "答對張數", value: "\(vm.correctCount)",       color: Color(hex: "2ecc71"))
-                statRow(label: "答錯張數", value: "\(vm.wrongCount)",          color: Color(hex: "e74c3c"))
+                statRow(label: "本局中獎", value: vm.totalPrizeAmountString, color: Color.gameGold)
+                statRow(label: "答對張數", value: "\(vm.correctCount)",       color: Color.successGreen)
+                statRow(label: "答錯張數", value: "\(vm.wrongCount)",          color: Color.errorRed)
             }
 
             // Accuracy bar
@@ -191,20 +191,20 @@ struct ResultView: View {
         HStack(spacing: 10) {
             Text("#\(entry.rank)")
                 .font(.system(size: 13, weight: .black))
-                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.45))
+                .foregroundColor(isLocal ? Color.gameGold : .white.opacity(0.45))
                 .frame(width: 44, alignment: .leading)
             Text(isLocal ? "你" : entry.playerName)
                 .font(.system(size: 13, weight: isLocal ? .heavy : .regular))
-                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.7))
+                .foregroundColor(isLocal ? Color.gameGold : .white.opacity(0.7))
                 .lineLimit(1)
             Spacer()
             Text(vm.currentMode.gcLeaderboard.formatScore(entry.score))
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(isLocal ? Color(hex: "f5a623") : .white.opacity(0.6))
+                .foregroundColor(isLocal ? Color.gameGold : .white.opacity(0.6))
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
-        .background(isLocal ? Color(hex: "f5a623").opacity(0.08) : Color.clear)
+        .background(isLocal ? Color.gameGold.opacity(0.08) : Color.clear)
         .cornerRadius(6)
     }
 
@@ -250,7 +250,7 @@ struct AccuracyBar: View {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 3).fill(Color.white.opacity(0.08))
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(LinearGradient(colors: [Color(hex: "e94560"), Color(hex: "f5a623")],
+                    .fill(LinearGradient(colors: [Color.accent, Color.gameGold],
                                          startPoint: .leading, endPoint: .trailing))
                     .frame(width: filled ? geo.size.width * CGFloat(accuracy) / 100 : 0)
                     .animation(.easeOut(duration: 1.0).delay(0.15), value: filled)

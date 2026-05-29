@@ -45,7 +45,7 @@ struct SettingsView: View {
                 } trailing: {
                     Toggle("", isOn: $soundOn)
                         .labelsHidden()
-                        .tint(Color(hex: "2ecc71"))
+                        .tint(Color.successGreen)
                         .onChange(of: soundOn) { val in
                             vm.sound.isEnabled = val
                         }
@@ -58,7 +58,7 @@ struct SettingsView: View {
                         Text(gc.isAuthenticated ? "Game Center 已連線" : "未登入 Game Center")
                             .font(.caption2)
                             .foregroundColor(gc.isAuthenticated
-                                ? Color(hex: "2ecc71").opacity(0.7)
+                                ? Color.successGreen.opacity(0.7)
                                 : .white.opacity(0.3))
                     }
                 } trailing: {
@@ -138,7 +138,7 @@ struct SettingsView: View {
 
                 Spacer().frame(height: 40)
             }
-            .background(Color(hex: "1a1a2e"))
+            .background(Color.panelBg)
             .cornerRadius(20, corners: [.topLeft, .topRight])
             .overlay(Rectangle().frame(height: 1)
                 .foregroundColor(.white.opacity(0.08)), alignment: .top)
@@ -173,7 +173,7 @@ struct SettingsView: View {
                 Text("感謝支持，你好棒！")
                     .font(.system(size: 13, weight: .bold))
                     .tracking(1)
-                    .foregroundColor(Color(hex: "f5a623"))
+                    .foregroundColor(Color.gameGold)
             }
             .padding(.vertical, 14)
             .frame(maxWidth: .infinity)
@@ -186,7 +186,7 @@ struct SettingsView: View {
                 } label: {
                     ZStack {
                         if store.isLoading {
-                            ProgressView().tint(Color(hex: "f5a623"))
+                            ProgressView().tint(Color.gameGold)
                         } else {
                             HStack(spacing: 6) {
                                 Text("請開發者喝咖啡")
@@ -198,14 +198,14 @@ struct SettingsView: View {
                             }
                             .font(.system(size: 13, weight: .bold))
                             .tracking(1)
-                            .foregroundColor(Color(hex: "f5a623"))
+                            .foregroundColor(Color.gameGold)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color(hex: "f5a623").opacity(0.1))
+                    .background(Color.gameGold.opacity(0.1))
                     .overlay(RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(hex: "f5a623").opacity(0.3), lineWidth: 1))
+                        .stroke(Color.gameGold.opacity(0.3), lineWidth: 1))
                     .cornerRadius(10)
                 }
                 .disabled(store.isLoading)
@@ -217,7 +217,7 @@ struct SettingsView: View {
                 if let msg = store.errorMessage {
                     Text(msg)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "e74c3c"))
+                        .foregroundColor(Color.errorRed)
                         .padding(.horizontal, 24)
                 }
 
@@ -265,7 +265,7 @@ struct InstructionsView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(hex: "0f0f1a").ignoresSafeArea()
+                Color.gameBg.ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 12) {
                         instSection("獎項說明", rows: [
@@ -294,7 +294,7 @@ struct InstructionsView: View {
             .navigationTitle("遊戲說明")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .navigationBarTrailing) {
-                Button("關閉") { dismiss() }.foregroundColor(Color(hex: "e94560"))
+                Button("關閉") { dismiss() }.foregroundColor(Color.accent)
             }}
         }
         .preferredColorScheme(.dark)
@@ -318,7 +318,7 @@ struct InstructionsView: View {
                         Text(row.1).font(.system(size: 12, weight: .bold, design: .monospaced))
                             .foregroundColor(.white.opacity(0.4))
                         if !row.2.isEmpty {
-                            Text(row.2).font(.system(size: 12)).foregroundColor(Color(hex: "f5a623"))
+                            Text(row.2).font(.system(size: 12)).foregroundColor(Color.gameGold)
                         }
                     }
                 }

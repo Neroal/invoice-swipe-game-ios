@@ -7,7 +7,7 @@ struct StartView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "0f0f1a").ignoresSafeArea()
+            Color.gameBg.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 22) {
                     Spacer(minLength: 44)
@@ -17,7 +17,7 @@ struct StartView: View {
                         Text("發票對對碰")
                             .font(.system(size: 64, weight: .black, design: .default))
                             .foregroundColor(.white)
-                            .shadow(color: Color(hex: "e94560"), radius: 0, x: 4, y: 4)
+                            .shadow(color: Color.accent, radius: 0, x: 4, y: 4)
                         Text("INVOICE SWIPE CHALLENGE")
                             .font(.system(size: 11))
                             .foregroundColor(.white.opacity(0.35))
@@ -64,11 +64,11 @@ struct StartView: View {
                                     Text("排行榜")
                                 }
                                 .font(.system(size: 13))
-                                .foregroundColor(Color(hex: "f5a623").opacity(0.8))
+                                .foregroundColor(Color.gameGold.opacity(0.8))
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 9)
                                 .overlay(RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color(hex: "f5a623").opacity(0.25), lineWidth: 1))
+                                    .stroke(Color.gameGold.opacity(0.25), lineWidth: 1))
                             }
                             .hapticTap()
                         }
@@ -92,11 +92,11 @@ private struct DemoBadgeView: View {
         Text(text)
             .font(.system(size: 13, weight: .bold))
             .tracking(1)
-            .foregroundColor(isWin ? Color(hex: "2ecc71") : Color(hex: "e74c3c"))
+            .foregroundColor(isWin ? Color.successGreen : Color.errorRed)
             .padding(.horizontal, 14).padding(.vertical, 7)
-            .background((isWin ? Color(hex: "2ecc71") : Color(hex: "e74c3c")).opacity(0.12))
+            .background((isWin ? Color.successGreen : Color.errorRed).opacity(0.12))
             .overlay(RoundedRectangle(cornerRadius: 4)
-                .stroke((isWin ? Color(hex: "2ecc71") : Color(hex: "e74c3c")).opacity(0.3), lineWidth: 1))
+                .stroke((isWin ? Color.successGreen : Color.errorRed).opacity(0.3), lineWidth: 1))
             .cornerRadius(4)
     }
 }
@@ -115,7 +115,7 @@ private struct ModeCardView: View {
             HStack(spacing: 14) {
                 Image(systemName: mode.systemIcon)
                     .font(.system(size: 22))
-                    .foregroundColor(isDailyDisabled ? .white.opacity(0.25) : Color(hex: "e94560"))
+                    .foregroundColor(isDailyDisabled ? .white.opacity(0.25) : Color.accent)
                     .frame(width: 32)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(mode.displayName)
@@ -130,14 +130,14 @@ private struct ModeCardView: View {
                         if !vm.dailyBestText.isEmpty {
                             Text(vm.dailyBestText)
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(Color(hex: "f5a623"))
+                                .foregroundColor(Color.gameGold)
                         }
                         Text(vm.dailyAttemptsText)
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(
                                 vm.canPlayDaily
-                                    ? Color(hex: "4fc3f7")
-                                    : Color(hex: "e74c3c")
+                                    ? Color.dailyBlue
+                                    : Color.errorRed
                             )
                     }
                 }
@@ -145,10 +145,10 @@ private struct ModeCardView: View {
                 if gc.isAuthenticated, let rank = gc.modeRanks[mode.gcLeaderboard] {
                     Text("全球 #\(rank)")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(Color(hex: "f5a623"))
+                        .foregroundColor(Color.gameGold)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color(hex: "f5a623").opacity(0.1))
+                        .background(Color.gameGold.opacity(0.1))
                         .cornerRadius(10)
                 }
                 Image(systemName: "chevron.right")

@@ -17,7 +17,7 @@ struct InvoiceCardView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .fill(Color(hex: "fef9ee"))
+                .fill(Color.cardBg)
 
             VStack(spacing: 0) {
                 // 紅色標題列
@@ -27,7 +27,7 @@ struct InvoiceCardView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 9)
-                    .background(Color(hex: "cc2200"))
+                    .background(Color.stampRed)
 
                 // 發票號碼（最大最顯眼，垂直方向撐滿剩餘空間）
                 VStack(spacing: 4) {
@@ -39,7 +39,7 @@ struct InvoiceCardView: View {
                     Text(invoice.displayNumber)
                         .font(.system(size: 32, weight: .black, design: .monospaced))
                         .tracking(2)
-                        .foregroundColor(Color(hex: "1a1a2e"))
+                        .foregroundColor(Color.panelBg)
                         .minimumScaleFactor(0.4)
                         .lineLimit(1)
                         .padding(.horizontal, 8)
@@ -86,7 +86,7 @@ struct InvoiceCardView: View {
 
             if rightOpacity > 0 {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: "2ecc71").opacity(rightOpacity))
+                    .fill(Color.successGreen.opacity(rightOpacity))
                 Text("中獎！")
                     .font(.system(size: 36, weight: .black))
                     .foregroundColor(.white)
@@ -94,7 +94,7 @@ struct InvoiceCardView: View {
             }
             if leftOpacity > 0 {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(hex: "e74c3c").opacity(leftOpacity))
+                    .fill(Color.errorRed.opacity(leftOpacity))
                 Text("未中獎")
                     .font(.system(size: 36, weight: .black))
                     .foregroundColor(.white)
@@ -129,7 +129,7 @@ struct InvoiceCardView: View {
                 .font(bold
                     ? .system(size: 11, weight: .bold, design: .monospaced)
                     : .system(size: 9, design: .monospaced))
-                .foregroundColor(bold ? Color(hex: "1a1a2e") : Color(hex: "555555"))
+                .foregroundColor(bold ? Color.panelBg : Color(hex: "555555"))
         }
     }
 }

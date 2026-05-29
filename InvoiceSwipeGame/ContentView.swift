@@ -77,9 +77,9 @@ struct ContentView: View {
 
     private var bigWinFlashColor: Color {
         switch vm.bigWinTier {
-        case .special: return Color(hex: "ff4444")
-        case .grand:   return Color(hex: "ffaa00")
-        default:       return Color(hex: "00ffaa")
+        case .special: return Color.winSpecial
+        case .grand:   return Color.winGrand
+        default:       return Color.winDefault
         }
     }
 }
