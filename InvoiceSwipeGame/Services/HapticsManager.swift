@@ -75,4 +75,33 @@ final class HapticsManager {
 
     /// 時間到
     func timeUp() { notif.notificationOccurred(.warning) }
+
+    /// Combo 里程碑：震動強度隨 streak 升高
+    func comboMilestone(streak: Int) {
+        switch streak {
+        case ..<5:
+            medium.impactOccurred(intensity: 0.6)
+        case 5..<8:
+            medium.impactOccurred(intensity: 0.8)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
+                self?.medium.impactOccurred(intensity: 0.6)
+            }
+        case 8..<10:
+            heavy.impactOccurred(intensity: 0.7)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
+                self?.heavy.impactOccurred(intensity: 0.85)
+            }
+        default: // 10+
+            heavy.impactOccurred(intensity: 1.0)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) { [weak self] in
+                self?.heavy.impactOccurred(intensity: 1.0)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) { [weak self] in
+                self?.heavy.impactOccurred(intensity: 0.8)
+            }
+        }
+    }
+
+    /// Combo 中斷：警告型通知震動
+    func comboBreak() { notif.notificationOccurred(.warning) }
 }

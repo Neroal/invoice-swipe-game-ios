@@ -15,6 +15,13 @@ struct GameView: View {
                     feedbackBar
                     cardArea(cardW: cardW, screenWidth: geo.size.width)
                 }
+
+                // Endless combo: 邊緣隨連擊升溫發光
+                if vm.currentMode == .endless {
+                    streakEdgeGlow
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
             }
         }
     }
@@ -22,23 +29,8 @@ struct GameView: View {
     // MARK: – Feedback bar（prize panel 下方固定區塊）
     private var feedbackBar: some View {
         ZStack {
-            // mini badge（小獎提示）
-            if vm.showMiniBadge {
-                Text(vm.miniBadgeText)
-                    .font(.system(size: 13, weight: .bold))
-                    .tracking(1)
-                    .foregroundColor(Color(hex: "f5a623"))
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 6)
-                    .background(Color(hex: "f5a623").opacity(0.12))
-                    .overlay(RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color(hex: "f5a623").opacity(0.35), lineWidth: 1))
-                    .cornerRadius(20)
-                    .transition(.scale(scale: 0.8).combined(with: .opacity))
-            }
-
-            // 答對 / 答錯 提示
-            if vm.showFeedback && !vm.showMiniBadge {
+            // 答對 / 答錯 提示（中獎已走 banner，這裡只顯示非中獎結果）
+            if vm.showFeedback {
                 Text(vm.feedbackText)
                     .font(.system(size: 16, weight: .black))
                     .foregroundColor(vm.feedbackCorrect ? Color(hex: "2ecc71") : Color(hex: "e74c3c"))
@@ -47,7 +39,6 @@ struct GameView: View {
             }
         }
         .frame(height: 38)
-        .animation(.spring(dampingFraction: 0.65), value: vm.showMiniBadge)
         .animation(.spring(dampingFraction: 0.65), value: vm.showFeedback)
     }
 
@@ -132,8 +123,8 @@ struct GameView: View {
         if vm.currentMode == .endless {
             HStack(spacing: 6) {
                 livesView
-                hudChip(label: "連續", value: "\(vm.currentStreak)", color: Color(hex: "a78bfa"))
-                hudChip(label: "最高", value: "\(vm.bestStreak)",    color: Color(hex: "f5a623"))
+                comboChip(streak: vm.currentStreak)
+                hudChip(label: "最高", value: "\(vm.bestStreak)", color: Color(hex: "f5a623"))
             }
         } else {
             HStack(spacing: 6) {
@@ -276,6 +267,65 @@ struct GameView: View {
                     .cornerRadius(50)
             }
         }
+    }
+
+    // MARK: – Combo UI helpers
+
+    private func comboChip(streak: Int) -> some View {
+        let color: Color = {
+            switch streak {
+            case 0..<3:  return Color(hex: "a78bfa")
+            case 3..<5:  return Color(hex: "f5a623")
+            case 5..<8:  return Color(hex: "ff6600")
+            case 8..<10: return Color(hex: "ff4400")
+            default:     return Color(hex: "ff1111")
+            }
+        }()
+        let fontSize: CGFloat = {
+            switch streak {
+            case 0..<3:  return 22
+            case 3..<5:  return 26
+            case 5..<8:  return 30
+            case 8..<10: return 34
+            default:     return 38
+            }
+        }()
+        return VStack(spacing: 1) {
+            Text("連續")
+                .font(.system(size: 9))
+                .foregroundColor(.white.opacity(0.35))
+                .tracking(2)
+            Text("\(streak)")
+                .font(.system(size: fontSize, weight: .black, design: .monospaced))
+                .foregroundColor(color)
+                .shadow(color: color.opacity(streak >= 5 ? 0.8 : 0), radius: 8)
+                .lineLimit(1)
+                .fixedSize()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color.white.opacity(0.06))
+        .cornerRadius(6)
+        .fixedSize()
+        .animation(.spring(dampingFraction: 0.5), value: streak)
+    }
+
+    private var streakEdgeGlow: some View {
+        let streak = vm.currentStreak
+        let (glowColor, glowOpacity): (Color, Double) = {
+            switch streak {
+            case 0..<3:  return (Color(hex: "f5a623"), 0.0)   // invisible, smooth fade-in at 3
+            case 3..<5:  return (Color(hex: "f5a623"), 0.35)
+            case 5..<8:  return (Color(hex: "ff6600"), 0.55)
+            case 8..<10: return (Color(hex: "ff3300"), 0.70)
+            default:     return (Color(hex: "ff1111"), 0.85)
+            }
+        }()
+        return Rectangle()
+            .stroke(glowColor, lineWidth: 30)
+            .blur(radius: 18)
+            .opacity(glowOpacity)
+            .animation(.easeOut(duration: 0.35), value: streak)
     }
 
     // MARK: – Helpers

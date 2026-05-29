@@ -162,4 +162,26 @@ final class SoundManager {
             tone(f, 0.32, 0.40, .sine, delay: Double(i) * 0.14)
         }
     }
+
+    // Combo 里程碑：音調隨 streak 升高（第 3／5／8／10+ 連擊）
+    func playCombo(streak: Int) {
+        switch streak {
+        case 3:
+            tone(880,  0.09, 0.28, .sine)
+            tone(1047, 0.08, 0.22, .sine, delay: 0.07)
+        case 5:
+            tone(1047, 0.09, 0.30, .sine)
+            tone(1319, 0.08, 0.25, .sine, delay: 0.06)
+            tone(1568, 0.07, 0.20, .sine, delay: 0.12)
+        case 8:
+            tone(1175, 0.08, 0.32, .sine)
+            tone(1480, 0.08, 0.28, .sine, delay: 0.06)
+            tone(1760, 0.07, 0.24, .sine, delay: 0.12)
+            tone(2093, 0.06, 0.18, .sine, delay: 0.18)
+        default: // 10+
+            for (i, f) in ([1047, 1319, 1568, 2093, 2637] as [Float]).enumerated() {
+                tone(f, 0.10, 0.34, .sine, delay: Double(i) * 0.06)
+            }
+        }
+    }
 }

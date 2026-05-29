@@ -49,7 +49,7 @@ struct PrizeChecker {
         }
     }
 
-    static func generateInvoice(prizes: PrizeNumbers, rng: inout SeededRNG) -> Invoice {
+    static func generateInvoice(prizes: PrizeNumbers, rng: inout SeededRNG, hotStreak: Int = 0) -> Invoice {
         let cal     = Calendar.current
         let today   = Date()
         let rocYear = cal.component(.year, from: today) - 1911
@@ -64,21 +64,44 @@ struct PrizeChecker {
         let seller  = rng.nextElement(sellers)
         let amount  = rng.nextInt(5...300) * 100
 
-        let forceWin = rng.next() < 0.35
+        let forceWin = rng.next() < 0.90
         var number: String
 
         if forceWin {
             let t = rng.next()
             // 隨機從三組頭獎中選一組作為本次中獎號碼的基底
             let f = rng.nextElement(prizes.firsts)
-            if      t < 0.02 { number = prizes.special }
-            else if t < 0.06 { number = prizes.grand   }
-            else if t < 0.16 { number = f }
-            else if t < 0.33 { number = String(rand8(rng: &rng).prefix(1)) + f.suffix(7) }
-            else if t < 0.50 { number = String(rand8(rng: &rng).prefix(2)) + f.suffix(6) }
-            else if t < 0.65 { number = String(rand8(rng: &rng).prefix(3)) + f.suffix(5) }
-            else if t < 0.82 { number = String(rand8(rng: &rng).prefix(4)) + f.suffix(4) }
-            else              { number = String(rand8(rng: &rng).prefix(5)) + f.suffix(3) }
+            if hotStreak >= 3 {
+                // 連對 3 張以上：三獎以上出現機率進一步提升
+                if      t < 0.02 { number = prizes.special }
+                else if t < 0.07 { number = prizes.grand   }
+                else if t < 0.17 { number = f }
+                else if t < 0.30 { number = String(rand8(rng: &rng).prefix(1)) + f.suffix(7) }
+                else if t < 0.45 { number = String(rand8(rng: &rng).prefix(2)) + f.suffix(6) }
+                else if t < 0.73 { number = String(rand8(rng: &rng).prefix(3)) + f.suffix(5) }
+                else if t < 0.95 { number = String(rand8(rng: &rng).prefix(4)) + f.suffix(4) }
+                else              { number = String(rand8(rng: &rng).prefix(5)) + f.suffix(3) }
+            } else if hotStreak >= 2 {
+                // 連對 2 張：四獎/五獎出現機率提升
+                if      t < 0.02 { number = prizes.special }
+                else if t < 0.06 { number = prizes.grand   }
+                else if t < 0.15 { number = f }
+                else if t < 0.25 { number = String(rand8(rng: &rng).prefix(1)) + f.suffix(7) }
+                else if t < 0.33 { number = String(rand8(rng: &rng).prefix(2)) + f.suffix(6) }
+                else if t < 0.63 { number = String(rand8(rng: &rng).prefix(3)) + f.suffix(5) }
+                else if t < 0.95 { number = String(rand8(rng: &rng).prefix(4)) + f.suffix(4) }
+                else              { number = String(rand8(rng: &rng).prefix(5)) + f.suffix(3) }
+            } else {
+                // 基礎分布：特別獎/特獎/頭獎維持稀有感；提升四/五獎比例；降低六獎比例
+                if      t < 0.02 { number = prizes.special }
+                else if t < 0.06 { number = prizes.grand   }
+                else if t < 0.15 { number = f }
+                else if t < 0.25 { number = String(rand8(rng: &rng).prefix(1)) + f.suffix(7) }
+                else if t < 0.35 { number = String(rand8(rng: &rng).prefix(2)) + f.suffix(6) }
+                else if t < 0.60 { number = String(rand8(rng: &rng).prefix(3)) + f.suffix(5) }
+                else if t < 0.90 { number = String(rand8(rng: &rng).prefix(4)) + f.suffix(4) }
+                else              { number = String(rand8(rng: &rng).prefix(5)) + f.suffix(3) }
+            }
         } else {
             var attempts = 0
             repeat {

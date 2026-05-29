@@ -29,6 +29,8 @@ final class GameViewModel: ObservableObject {
     @Published var lives:         Int = 3
     @Published var currentStreak: Int = 0
     @Published var bestStreak:    Int = 0
+    // Hot Streak（全模式）：連續正確辨識中獎發票的次數
+    @Published var hotStreakCount: Int = 0
 
     // MARK: – Game over flag (prevents swipes after lives run out)
     @Published var isGameOver = false
@@ -48,13 +50,13 @@ final class GameViewModel: ObservableObject {
     @Published var feedbackText     = ""
     @Published var feedbackCorrect  = true
     @Published var showFeedback     = false
-    @Published var miniBadgeText    = ""
-    @Published var miniBadgeTier: WinTier? = nil
-    @Published var showMiniBadge    = false
 
-    // MARK: – Big-win overlay
+    // MARK: – Big-win (non-blocking banner + flash)
     @Published var showBigWin   = false
+    @Published var bigWinFlash  = false
     @Published var bigWinTier: WinTier? = nil
+    @Published var bigWinID:    Int = 0   // 每次中獎自增，強制 SwiftUI re-insert banner
+    private var bigWinTask: Task<Void, Never>? = nil
 
     // MARK: – Countdown
     @Published var countdownValue = 3
@@ -128,16 +130,18 @@ final class GameViewModel: ObservableObject {
         totalCount    = 0
         correctCount  = 0
         scoreBonus    = 0
-        lives         = 3
-        currentStreak = 0
-        bestStreak    = 0
+        lives          = 3
+        currentStreak  = 0
+        bestStreak     = 0
+        hotStreakCount = 0
         dragOffset    = .zero
         isAnimating   = false
         isNewDailyRecord  = false
         isGameOver        = false
         showFeedback      = false
-        showMiniBadge     = false
         showBigWin        = false
+        bigWinFlash       = false
+        bigWinID          = 0
         flyingCard        = nil
         flyingDir         = nil
         flyingStartOffset = .zero
@@ -216,12 +220,20 @@ final class GameViewModel: ObservableObject {
             if currentMode == .endless {
                 currentStreak += 1
                 if currentStreak > bestStreak { bestStreak = currentStreak }
+                let milestones = [3, 5, 8, 10]
+                if milestones.contains(currentStreak) || (currentStreak > 10 && currentStreak % 5 == 0) {
+                    sound.playCombo(streak: currentStreak)
+                    haptics.comboMilestone(streak: currentStreak)
+                }
             }
+            if card.isWinner { hotStreakCount += 1 } else { hotStreakCount = 0 }
         } else {
             if currentMode == .endless {
+                if currentStreak >= 3 { haptics.comboBreak() }
                 currentStreak = 0
                 handleLifeLost()
             }
+            hotStreakCount = 0
         }
 
         deliverFeedback(correct: correct, card: card)
@@ -236,7 +248,7 @@ final class GameViewModel: ObservableObject {
             withTransaction(t) {
                 cards.removeFirst()
                 while cards.count < 6 {
-                    cards.append(PrizeChecker.generateInvoice(prizes: prizes, rng: &rng))
+                    cards.append(PrizeChecker.generateInvoice(prizes: prizes, rng: &rng, hotStreak: hotStreakCount))
                 }
                 dragOffset  = .zero
                 isAnimating = false
@@ -272,41 +284,20 @@ final class GameViewModel: ObservableObject {
 
     // MARK: – Feedback
     private func deliverFeedback(correct: Bool, card: Invoice) {
-        if correct, let tier = card.winTier, tier.isBigWin {
-            if currentMode.hasTimer {
-                // 計時模式：強化 mini badge + 加分，不打斷遊戲流程
-                triggerBigWinMini(tier)
-            } else {
-                // 無限模式：保留全螢幕 overlay
-                triggerBigWin(tier)
-            }
+        if correct, let tier = card.winTier {
+            // 所有中獎獎級統一走 banner 演出
+            triggerBigWinEffect(tier)
             return
         }
-        if correct, let tier = card.winTier {
-            // Small win badge
-            scoreBonus += tier.bonusPoints
-            sound.playCoin()
-            haptics.coin()
-            miniBadgeTier = tier
-            miniBadgeText = "\(tier.rawValue)  \(tier.scoreText)"
-            withAnimation(.spring(dampingFraction: 0.6)) { showMiniBadge = true }
-            Task {
-                try? await Task.sleep(nanoseconds: 900_000_000)
-                withAnimation { showMiniBadge = false }
-            }
+        if correct {
+            sound.playCorrect()
+            haptics.correct()
         } else {
-            if correct {
-                sound.playCorrect()
-                haptics.correct()
-            } else {
-                sound.playWrong()
-                haptics.wrong()
-            }
+            sound.playWrong()
+            haptics.wrong()
         }
 
-        feedbackText    = correct
-            ? (card.isWinner ? "\(card.winTier?.rawValue ?? "中獎")！" : "✓ 正確")
-            : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
+        feedbackText    = correct ? "✓ 正確" : (card.isWinner ? "✗ 漏了！" : "✗ 答錯")
         feedbackCorrect = correct
 
         withAnimation(.spring()) { showFeedback = true }
@@ -316,40 +307,46 @@ final class GameViewModel: ObservableObject {
         }
     }
 
-    /// 計時模式大獎處理：強化 mini badge + 加分，不蓋住畫面
-    private func triggerBigWinMini(_ tier: WinTier) {
+    /// 非阻斷式大獎演出：螢幕閃光 + 粒子爆炸 + 邊緣衝入 banner，全模式統一
+    private func triggerBigWinEffect(_ tier: WinTier) {
+        // 取消前一個 hide task，避免舊 task 提早關掉新 banner
+        bigWinTask?.cancel()
+        bigWinTask = nil
+
         scoreBonus += tier.bonusPoints
         switch tier {
         case .special: sound.playSpecialPrize()
         case .grand:   sound.playGrandPrize()
         case .first:   sound.playFirstPrize()
-        default: break
+        default:       sound.playCoin()   // 二～六獎
         }
-        haptics.bigWin(tier: tier)
-        miniBadgeTier = tier
-        miniBadgeText = "★ \(tier.rawValue)  \(tier.scoreText)"
-        withAnimation(.spring(dampingFraction: 0.6)) { showMiniBadge = true }
-        Task {
-            try? await Task.sleep(nanoseconds: 1_400_000_000)
-            withAnimation { showMiniBadge = false }
-        }
-    }
+        if tier.isBigWin { haptics.bigWin(tier: tier) } else { haptics.coin() }
 
-    private func triggerBigWin(_ tier: WinTier) {
-        bigWinTier = tier
-        withAnimation(.spring(dampingFraction: 0.65)) { showBigWin = true }
-        haptics.bigWin(tier: tier)
-        switch tier {
-        case .special: sound.playSpecialPrize()
-        case .grand:   sound.playGrandPrize()
-        case .first:   sound.playFirstPrize()
-        default: break
+        // 閃光只給特別獎/特獎/頭獎
+        if tier.isBigWin {
+            withAnimation(.easeOut(duration: 0.05)) { bigWinFlash = true }
+            Task {
+                try? await Task.sleep(nanoseconds: 130_000_000)
+                withAnimation(.easeOut(duration: 0.18)) { bigWinFlash = false }
+            }
         }
-        let dur: UInt64 = tier == .special ? 1_500_000_000
-                        : tier == .grand   ? 1_200_000_000 : 900_000_000
-        Task {
+        // bigWinID 自增 → SwiftUI 視為全新 view → 重新執行 slide-in transition
+        withAnimation(.spring(dampingFraction: 0.65)) {
+            bigWinTier = tier
+            bigWinID  += 1
+            showBigWin = true
+        }
+        let dur: UInt64
+        switch tier {
+        case .special: dur = 1_400_000_000
+        case .grand:   dur = 1_100_000_000
+        case .first:   dur =   900_000_000
+        default:       dur =   650_000_000   // 二～六獎
+        }
+        bigWinTask = Task {
             try? await Task.sleep(nanoseconds: dur)
-            withAnimation { showBigWin = false }
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeIn(duration: 0.25)) { showBigWin = false }
         }
     }
 
@@ -401,8 +398,8 @@ final class GameViewModel: ObservableObject {
         lifeLostTask = nil
         showCountdown     = false
         showFeedback      = false
-        showMiniBadge     = false
         showBigWin        = false
+        bigWinFlash       = false
         flyingCard        = nil
         flyingDir         = nil
         flyingStartOffset = .zero
