@@ -34,7 +34,7 @@ enum GCLeaderboard: String, CaseIterable {
     func formatScore(_ score: Int) -> String {
         switch self {
         case .normal, .daily:
-            return "NT$\(score)"
+            return "NT$ \(score)"
         case .endless:
             return "Combo \(score / 1000)"
         }
