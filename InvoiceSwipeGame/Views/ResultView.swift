@@ -83,11 +83,11 @@ struct ResultView: View {
                 statRow(label: "最長連續答對", value: "\(vm.bestStreak)", color: Color(hex: "a78bfa"))
                 statRow(label: "判斷張數",    value: "\(vm.totalCount)", color: Color(hex: "f5a623"))
             } else {
-                statRow(label: "得分",     value: "\(vm.score)",        color: Color(hex: "f5a623"))
-                statRow(label: "答對張數", value: "\(vm.correctCount)", color: Color(hex: "2ecc71"))
-                statRow(label: "答錯張數", value: "\(vm.wrongCount)",   color: Color(hex: "e74c3c"))
+                statRow(label: "本局中獎", value: vm.totalPrizeAmountString, color: Color(hex: "f5a623"))
+                statRow(label: "答對張數", value: "\(vm.correctCount)",       color: Color(hex: "2ecc71"))
+                statRow(label: "答錯張數", value: "\(vm.wrongCount)",          color: Color(hex: "e74c3c"))
                 if vm.currentMode == .daily {
-                    statRow(label: "今日最高", value: "\(vm.dailyBestScore)", color: Color(hex: "a78bfa"))
+                    statRow(label: "今日最高", value: vm.dailyBestPrizeString, color: Color(hex: "a78bfa"))
                     Text(vm.dailyAttemptsText)
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(
@@ -120,7 +120,11 @@ struct ResultView: View {
     private func statRow(label: String, value: String, color: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label).font(.system(size: 12)).foregroundColor(.white.opacity(0.5)).tracking(2)
-            Text(value).font(.system(size: 48, weight: .black)).foregroundColor(color)
+            Text(value)
+                .font(.system(size: 48, weight: .black))
+                .foregroundColor(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

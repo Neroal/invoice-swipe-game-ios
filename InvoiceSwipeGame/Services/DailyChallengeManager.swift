@@ -33,7 +33,11 @@ struct DailyChallengeManager {
 
     var bestDisplayText: String {
         let b = bestScore()
-        return b > 0 ? "今日最高：\(b) 分" : ""
+        guard b > 0 else { return "" }
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        let formatted = f.string(from: NSNumber(value: b)) ?? "\(b)"
+        return "今日最高：NT$ \(formatted)"
     }
 
     // MARK: – Attempts
