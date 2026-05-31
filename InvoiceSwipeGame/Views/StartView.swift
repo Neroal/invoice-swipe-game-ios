@@ -127,11 +127,6 @@ private struct ModeCardView: View {
                         .foregroundColor(.white.opacity(0.35))
                         .multilineTextAlignment(.leading)
                     if mode == .daily {
-                        if !vm.dailyBestText.isEmpty {
-                            Text(vm.dailyBestText)
-                                .font(.system(size: 13, weight: .bold))
-                                .foregroundColor(Color.gameGold)
-                        }
                         Text(vm.dailyAttemptsText)
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(

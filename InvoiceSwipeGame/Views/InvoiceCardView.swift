@@ -30,8 +30,12 @@ struct InvoiceCardView: View {
                     .background(Color.stampRed)
 
                 // 發票號碼（最大最顯眼，垂直方向撐滿剩餘空間）
-                VStack(spacing: 4) {
-                    Spacer(minLength: 14)
+                VStack(spacing: 6) {
+                    Spacer(minLength: 10)
+                    Text(invoice.periodString)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(Color(hex: "999999"))
+                        .tracking(1)
                     Text(invoice.displayNumber)
                         .font(.system(size: 32, weight: .black, design: .monospaced))
                         .tracking(2)
@@ -39,7 +43,7 @@ struct InvoiceCardView: View {
                         .minimumScaleFactor(0.4)
                         .lineLimit(1)
                         .padding(.horizontal, 8)
-                    Spacer(minLength: 14)
+                    Spacer(minLength: 10)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -70,13 +74,6 @@ struct InvoiceCardView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 9)
 
-                ReceiptDashedLine()
-
-                // 裝飾性條碼
-                ReceiptBarcodeView()
-                    .frame(height: 24)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
 
             }
 
@@ -143,25 +140,3 @@ private struct ReceiptDashedLine: View {
     }
 }
 
-private struct ReceiptBarcodeView: View {
-    private static let widths: [CGFloat] = [
-        2, 1, 3, 1, 2, 1, 1, 2, 3, 1,
-        2, 1, 1, 3, 1, 2, 1, 1, 3, 2,
-        1, 1, 2, 3, 1, 1, 4, 1, 2, 1,
-        1, 3, 1, 2, 1, 1, 2, 3, 1, 2
-    ]
-    private static let totalUnits: CGFloat = widths.reduce(0, +)
-
-    var body: some View {
-        GeometryReader { geo in
-            let scale = geo.size.width / Self.totalUnits
-            HStack(spacing: 0) {
-                ForEach(Array(Self.widths.enumerated()), id: \.offset) { idx, w in
-                    Rectangle()
-                        .fill(idx % 2 == 0 ? Color.black.opacity(0.7) : Color.clear)
-                        .frame(width: w * scale)
-                }
-            }
-        }
-    }
-}
