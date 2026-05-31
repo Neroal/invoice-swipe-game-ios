@@ -8,7 +8,7 @@ struct GameView: View {
             let cardW = isIPad ? min(geo.size.width * 0.75, 480) : geo.size.width * 0.75
             // 動態計算卡片高度：填滿 HUD ↔ 按鈕之間的空間，上下各留 50pt
             let burnH: CGFloat = vm.currentMode == .endless ? 12 : 0
-            let reserved: CGFloat = 145 + 38 + burnH + 75 + 100   // prizePanel + feedbackBar + burnBar + buttons + gaps
+            let reserved: CGFloat = 44 + 105 + 38 + burnH + 75 + 60   // hudArea + prizePanel + feedbackBar + burnBar + buttons + gaps
             let cardHRaw = max(250, geo.size.height - reserved)
             let cardH = isIPad ? min(cardHRaw, cardW * 1.5) : cardHRaw
 
@@ -16,14 +16,15 @@ struct GameView: View {
                 Color.gameBg.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    hudArea
                     prizePanel
                     feedbackBar
                     if vm.currentMode == .endless {
                         burnTimerBar
                     }
-                    Color.clear.frame(height: 50)
+                    Color.clear.frame(height: 20)
                     invoiceArea(cardW: cardW, cardH: cardH, screenWidth: geo.size.width)
-                    Color.clear.frame(height: 50)
+                    Color.clear.frame(height: 20)
                     actionButtons
                         .padding(.horizontal, 20)
                         .padding(.bottom, 28)
@@ -54,21 +55,21 @@ struct GameView: View {
     }
 
     // MARK: – Prize panel
+    private var hudArea: some View {
+        HStack {
+            Spacer()
+            hudRow
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(Color.gameBg)
+    }
+
     private var prizePanel: some View {
         VStack(spacing: 7) {
-            HStack {
-                Spacer()
-                hudRow
-                Spacer()
-            }
-
-            // 特別獎
             prizeRowSingle(label: "特別獎", number: vm.prizes.special)
-
-            // 特獎
-            prizeRowSingle(label: "特獎", number: vm.prizes.grand)
-
-            // 頭獎 × 3（末 3 碼紅字）
+            prizeRowSingle(label: "特獎",   number: vm.prizes.grand)
             prizeRowTriple(numbers: vm.prizes.firsts)
         }
         .padding(.horizontal, 16)
@@ -78,7 +79,12 @@ struct GameView: View {
     }
 
     private func prizeRowSingle(label: String, number: String) -> some View {
-        ZStack {
+        HStack(spacing: 0) {
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.45))
+                .tracking(1)
+                .frame(width: 46, alignment: .leading)
             Text(number)
                 .font(.system(size: 18, weight: .black, design: .monospaced))
                 .foregroundColor(.white)
@@ -86,13 +92,6 @@ struct GameView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .center)
-            HStack {
-                Text(label)
-                    .font(.system(size: 12))
-                    .foregroundColor(.white.opacity(0.45))
-                    .tracking(1)
-                Spacer()
-            }
         }
     }
 
@@ -121,20 +120,70 @@ struct GameView: View {
             Text(prefix).foregroundColor(.white) +
             Text(suffix).foregroundColor(Color(hex: "ff6b6b"))
         )
-        .font(.system(size: 16, weight: .black, design: .monospaced))
+        .font(.system(size: 18, weight: .black, design: .monospaced))
         .tracking(0.5)
     }
 
     @ViewBuilder
     private var hudRow: some View {
         if vm.currentMode == .endless {
-            HStack(spacing: 6) {
-                livesView
-                comboChip(streak: vm.currentStreak)
-            }
+            endlessChip
         } else {
             timerPrizeChip
         }
+    }
+
+    private var endlessChip: some View {
+        let streak = vm.currentStreak
+        let comboColor: Color = {
+            switch streak {
+            case 0..<5:   return Color.comboPurple
+            case 5..<10:  return Color.gameGold
+            case 10..<20: return Color.comboDeepOrange
+            default:      return Color.comboBrightRed
+            }
+        }()
+        return HStack(spacing: 0) {
+            VStack(spacing: 1) {
+                Text("命")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.35))
+                    .tracking(2)
+                HStack(spacing: 2) {
+                    ForEach(0..<3, id: \.self) { i in
+                        Image(systemName: i < vm.lives ? "heart.fill" : "heart")
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(i < vm.lives ? Color.errorRed : Color.white.opacity(0.2))
+                    }
+                }
+                .frame(height: 22)
+            }
+            .frame(width: 84)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.12))
+                .frame(width: 1, height: 28)
+
+            VStack(spacing: 1) {
+                Text("連續")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.35))
+                    .tracking(2)
+                Text("\(streak)")
+                    .font(.system(size: 22, weight: .black, design: .monospaced))
+                    .foregroundColor(comboColor)
+                    .shadow(color: comboColor.opacity(streak >= 5 ? 0.8 : 0), radius: 8)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .frame(width: 84)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color.white.opacity(0.06))
+        .cornerRadius(6)
+        .animation(.spring(dampingFraction: 0.5), value: streak)
     }
 
     private var timerPrizeChip: some View {
@@ -175,30 +224,9 @@ struct GameView: View {
         .frame(width: 240)
     }
 
-    private var livesView: some View {
-        HStack(spacing: 3) {
-            ForEach(0..<3, id: \.self) { i in
-                Image(systemName: i < vm.lives ? "heart.fill" : "heart")
-                    .font(.system(size: 14))
-                    .foregroundColor(i < vm.lives ? Color.errorRed : Color.white.opacity(0.2))
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(Color.white.opacity(0.06))
-        .cornerRadius(6)
-    }
-
     // MARK: – Invoice area
     private func invoiceArea(cardW: CGFloat, cardH: CGFloat, screenWidth: CGFloat) -> some View {
         ZStack {
-            HStack {
-                sideIndicator(isRight: false)
-                Spacer()
-                sideIndicator(isRight: true)
-            }
-            .padding(.horizontal, 12)
-
             if let card = vm.cards.first {
                 InvoiceCardView(invoice: card, dragOffset: vm.dragOffset, isTop: true)
                     .frame(width: cardW, height: cardH)
@@ -238,22 +266,6 @@ struct GameView: View {
                     withAnimation(.spring()) { vm.dragOffset = .zero }
                 }
             }
-    }
-
-    private func sideIndicator(isRight: Bool) -> some View {
-        let triggered = isRight
-            ? vm.dragOffset.width > 30
-            : vm.dragOffset.width < -30
-        return VStack(spacing: 4) {
-            Text(isRight ? "→" : "←")
-                .font(.system(size: 24))
-            Text(isRight ? "中獎" : "未中")
-                .font(.caption2).fontWeight(.bold)
-                .tracking(1)
-        }
-        .foregroundColor(isRight ? Color.successGreen : Color.errorRed)
-        .opacity(triggered ? 1 : 0.18)
-        .animation(.easeOut(duration: 0.15), value: triggered)
     }
 
     private var actionButtons: some View {
@@ -316,35 +328,6 @@ struct GameView: View {
     }
 
     // MARK: – Combo UI helpers
-
-    private func comboChip(streak: Int) -> some View {
-        let color: Color = {
-            switch streak {
-            case 0..<5:   return Color.comboPurple   // phase 1
-            case 5..<10:  return Color.gameGold   // phase 2
-            case 10..<20: return Color.comboDeepOrange   // phase 3
-            default:      return Color.comboBrightRed   // phase 4
-            }
-        }()
-        return VStack(spacing: 1) {
-            Text("連續")
-                .font(.system(size: 9))
-                .foregroundColor(.white.opacity(0.35))
-                .tracking(2)
-            Text("\(streak)")
-                .font(.system(size: 22, weight: .black, design: .monospaced))
-                .foregroundColor(color)
-                .shadow(color: color.opacity(streak >= 5 ? 0.8 : 0), radius: 8)
-                .lineLimit(1)
-                .fixedSize()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(Color.white.opacity(0.06))
-        .cornerRadius(6)
-        .fixedSize()
-        .animation(.spring(dampingFraction: 0.5), value: streak)
-    }
 
     private var streakEdgeGlow: some View {
         let streak = vm.currentStreak

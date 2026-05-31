@@ -21,4 +21,12 @@ struct Invoice: Identifiable {
         guard parts.count == 3 else { return dateString }
         return "民國\(parts[0])年\(parts[1])月\(parts[2])日"
     }
+
+    var periodString: String {
+        let parts = dateString.split(separator: ".")
+        guard parts.count == 3, let year = parts.first, let monthInt = Int(parts[1]) else { return "" }
+        let start = monthInt % 2 == 0 ? monthInt - 1 : monthInt
+        let end   = start + 1
+        return "\(year)年\(String(format: "%02d", start))-\(String(format: "%02d", end))月"
+    }
 }
