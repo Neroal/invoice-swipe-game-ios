@@ -32,10 +32,6 @@ struct InvoiceCardView: View {
                 // 發票號碼（最大最顯眼，垂直方向撐滿剩餘空間）
                 VStack(spacing: 4) {
                     Spacer(minLength: 14)
-                    Text("發 票 號 碼")
-                        .font(.system(size: 8))
-                        .foregroundColor(Color(hex: "aaaaaa"))
-                        .tracking(3)
                     Text(invoice.displayNumber)
                         .font(.system(size: 32, weight: .black, design: .monospaced))
                         .tracking(2)

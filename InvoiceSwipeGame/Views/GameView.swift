@@ -4,7 +4,8 @@ struct GameView: View {
     @EnvironmentObject var vm: GameViewModel
     var body: some View {
         GeometryReader { geo in
-            let cardW = geo.size.width * 0.75
+            let isIPad = geo.size.width > 700
+            let cardW = isIPad ? min(geo.size.width * 0.75, 480) : geo.size.width * 0.75
             // 動態計算卡片高度：填滿 HUD ↔ 按鈕之間的空間，上下各留 50pt
             let burnH: CGFloat = vm.currentMode == .endless ? 12 : 0
             let reserved: CGFloat = 145 + 38 + burnH + 75 + 100   // prizePanel + feedbackBar + burnBar + buttons + gaps
@@ -281,6 +282,7 @@ struct GameView: View {
                     .cornerRadius(50)
             }
         }
+        .frame(maxWidth: 520)
     }
 
     // MARK: – Burn timer bar (Endless only)
