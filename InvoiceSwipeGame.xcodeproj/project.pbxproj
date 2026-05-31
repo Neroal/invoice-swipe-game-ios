@@ -338,7 +338,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "發票對對碰";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2.0.1;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.neroal.invoiceswipegame;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -366,7 +366,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "發票對對碰";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.arcade-games";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2.0.1;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.neroal.invoiceswipegame;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
