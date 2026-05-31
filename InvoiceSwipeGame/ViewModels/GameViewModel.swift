@@ -29,15 +29,18 @@ final class GameViewModel: ObservableObject {
     @Published var lives:         Int = 3
     @Published var currentStreak: Int = 0
     @Published var bestStreak:    Int = 0
-    // Hot Streak（全模式）：連續正確辨識中獎發票的次數
-    @Published var hotStreakCount: Int = 0
+
+    // MARK: – Burst window（一般 / 每日挑戰）：每局隨機在第 N–N+2 張強制出現三獎以上
+    private var burstStartIndex: Int = 0
+    private var cardIndex:       Int = 0   // 本局已發牌數（用於判斷是否在爆發視窗內）
 
     // MARK: – Game over flag (prevents swipes after lives run out)
     @Published var isGameOver = false
 
     // MARK: – Burn timer (Endless only)
-    @Published var burnTimeLeft:  Double = 8.0
-    @Published var burnTimerFull: Double = 8.0
+    // View 用 burnStartDate + burnDuration 搭配 TimelineView 逐幀計算進度，不依賴 Timer 精度
+    @Published var burnStartDate: Date? = nil
+    @Published var burnDurationValue: Double = 8.0
     private var burnTimerSub: AnyCancellable?
 
     // MARK: – Card drag
@@ -143,7 +146,7 @@ final class GameViewModel: ObservableObject {
         lives          = 3
         currentStreak  = 0
         bestStreak     = 0
-        hotStreakCount = 0
+        cardIndex      = 0
         dragOffset    = .zero
         isAnimating   = false
         isNewDailyRecord  = false
@@ -164,7 +167,9 @@ final class GameViewModel: ObservableObject {
             : SeededRNG(seed: UInt32.random(in: 1..<UInt32.max))
 
         prizes = PrizeChecker.generatePrizeNumbers(rng: &rng)
-        cards  = (0..<8).map { _ in PrizeChecker.generateInvoice(prizes: prizes, rng: &rng) }
+        // 爆發視窗：無限模式不啟用，其他模式在第 5–15 張觸發，連續 3 張
+        burstStartIndex = currentMode == .endless ? Int.max : 5 + Int(rng.next() * 11)
+        cards  = (0..<8).map { _ in nextInvoice() }
 
         phase = .countdown
         runCountdown()
@@ -211,6 +216,14 @@ final class GameViewModel: ObservableObject {
             }
     }
 
+    // MARK: – Invoice generation
+    private func nextInvoice() -> Invoice {
+        let isBurst = (cardIndex >= burstStartIndex && cardIndex < burstStartIndex + 3)
+        let invoice = PrizeChecker.generateInvoice(prizes: prizes, rng: &rng, mode: currentMode, isBurst: isBurst)
+        cardIndex += 1
+        return invoice
+    }
+
     // MARK: – Swipe processing
     func processSwipe(_ dir: SwipeDirection) {
         guard !isAnimating, !cards.isEmpty, phase == .playing, !isGameOver else { return }
@@ -239,12 +252,10 @@ final class GameViewModel: ObservableObject {
                 sound.playCombo(streak: currentStreak)
                 haptics.comboMilestone(streak: currentStreak)
             }
-            if card.isWinner { hotStreakCount += 1 } else { hotStreakCount = 0 }
         } else {
             if currentStreak >= 3 { haptics.comboBreak() }
             currentStreak = 0
             if currentMode == .endless { handleLifeLost() }
-            hotStreakCount = 0
         }
 
         deliverFeedback(correct: correct, card: card)
@@ -259,7 +270,7 @@ final class GameViewModel: ObservableObject {
             withTransaction(t) {
                 cards.removeFirst()
                 while cards.count < 6 {
-                    cards.append(PrizeChecker.generateInvoice(prizes: prizes, rng: &rng, hotStreak: hotStreakCount))
+                    cards.append(nextInvoice())
                 }
                 dragOffset  = .zero
                 isAnimating = false
@@ -310,26 +321,24 @@ final class GameViewModel: ObservableObject {
         guard currentMode == .endless, phase == .playing, !isGameOver else { return }
         burnTimerSub?.cancel()
         let duration = burnDuration(streak: currentStreak)
-        burnTimerFull = duration
-        burnTimeLeft  = duration
-        burnTimerSub = Timer.publish(every: 0.05, on: .main, in: .common)
+        burnDurationValue = duration
+        burnStartDate     = Date()
+        // Timer 只負責觸發 timeout，不再驅動 UI 更新
+        burnTimerSub = Timer.publish(every: duration, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self, self.phase == .playing, !self.isGameOver else { return }
-                self.burnTimeLeft = max(0, self.burnTimeLeft - 0.05)
-                if self.burnTimeLeft <= 0 {
-                    self.burnTimerSub?.cancel()
-                    self.burnTimerSub = nil
-                    self.handleBurnTimeout()
-                }
+                self.burnTimerSub?.cancel()
+                self.burnTimerSub = nil
+                self.handleBurnTimeout()
             }
     }
 
     private func stopBurnTimer() {
         burnTimerSub?.cancel()
         burnTimerSub = nil
-        burnTimeLeft  = 8.0
-        burnTimerFull = 8.0
+        burnStartDate     = nil
+        burnDurationValue = 8.0
     }
 
     private func handleBurnTimeout() {
@@ -339,7 +348,6 @@ final class GameViewModel: ObservableObject {
         haptics.wrong()
         if currentStreak >= 3 { haptics.comboBreak() }
         currentStreak = 0
-        hotStreakCount = 0
         totalCount += 1
 
         feedbackText    = "⏰ 超時！"
@@ -357,7 +365,7 @@ final class GameViewModel: ObservableObject {
         withTransaction(t) {
             if !cards.isEmpty { cards.removeFirst() }
             while cards.count < 6 {
-                cards.append(PrizeChecker.generateInvoice(prizes: prizes, rng: &rng, hotStreak: hotStreakCount))
+                cards.append(nextInvoice())
             }
         }
 

@@ -4,11 +4,13 @@ struct GameView: View {
     @EnvironmentObject var vm: GameViewModel
     var body: some View {
         GeometryReader { geo in
-            let cardW = geo.size.width * 0.75
+            let isIPad = geo.size.width > 700
+            let cardW = isIPad ? min(geo.size.width * 0.75, 480) : geo.size.width * 0.75
             // 動態計算卡片高度：填滿 HUD ↔ 按鈕之間的空間，上下各留 50pt
             let burnH: CGFloat = vm.currentMode == .endless ? 12 : 0
             let reserved: CGFloat = 145 + 38 + burnH + 75 + 100   // prizePanel + feedbackBar + burnBar + buttons + gaps
-            let cardH = max(250, geo.size.height - reserved)
+            let cardHRaw = max(250, geo.size.height - reserved)
+            let cardH = isIPad ? min(cardHRaw, cardW * 1.5) : cardHRaw
 
             ZStack {
                 Color.gameBg.ignoresSafeArea()
@@ -281,20 +283,25 @@ struct GameView: View {
                     .cornerRadius(50)
             }
         }
+        .frame(maxWidth: 520)
     }
 
     // MARK: – Burn timer bar (Endless only)
 
     private var burnTimerBar: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12))
-                let ratio = vm.burnTimerFull > 0 ? vm.burnTimeLeft / vm.burnTimerFull : 0
-                let clamped = max(0.0, min(1.0, ratio))
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(burnBarColor(ratio: ratio))
-                    .frame(width: geo.size.width * CGFloat(clamped))
-                    .animation(.linear(duration: 0.05), value: vm.burnTimeLeft)
+        TimelineView(.animation) { context in
+            let ratio: Double = {
+                guard let start = vm.burnStartDate, vm.burnDurationValue > 0 else { return 1.0 }
+                let elapsed = context.date.timeIntervalSince(start)
+                return max(0.0, min(1.0, 1.0 - elapsed / vm.burnDurationValue))
+            }()
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(burnBarColor(ratio: ratio))
+                        .frame(width: geo.size.width * CGFloat(ratio))
+                }
             }
         }
         .frame(height: 4)
