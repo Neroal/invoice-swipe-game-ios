@@ -15,9 +15,9 @@ struct LeaderboardEntry: Identifiable {
 // MARK: - Leaderboard IDs
 
 enum GCLeaderboard: String, CaseIterable {
-    case normal  = "invoice.normal.score"
+    case normal  = "invoice.normal.score.v2"
     case daily   = "invoice.daily.score.v2"
-    case endless = "invoice.endless.streak"
+    case endless = "invoice.endless.streak.v2"
 
     var timeScope: GKLeaderboard.TimeScope {
         self == .daily ? .today : .allTime
@@ -36,7 +36,7 @@ enum GCLeaderboard: String, CaseIterable {
         case .normal, .daily:
             return "NT$ \(score.formatted())"
         case .endless:
-            return "Combo \(score / 1000)"
+            return "Combo \(score)"
         }
     }
 }
