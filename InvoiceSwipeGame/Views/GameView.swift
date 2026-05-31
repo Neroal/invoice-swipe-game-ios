@@ -9,7 +9,8 @@ struct GameView: View {
             // 動態計算卡片高度：填滿 HUD ↔ 按鈕之間的空間，上下各留 50pt
             let burnH: CGFloat = vm.currentMode == .endless ? 12 : 0
             let reserved: CGFloat = 145 + 38 + burnH + 75 + 100   // prizePanel + feedbackBar + burnBar + buttons + gaps
-            let cardH = max(250, geo.size.height - reserved)
+            let cardHRaw = max(250, geo.size.height - reserved)
+            let cardH = isIPad ? min(cardHRaw, cardW * 1.5) : cardHRaw
 
             ZStack {
                 Color.gameBg.ignoresSafeArea()
