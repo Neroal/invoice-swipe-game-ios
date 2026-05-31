@@ -289,15 +289,19 @@ struct GameView: View {
     // MARK: – Burn timer bar (Endless only)
 
     private var burnTimerBar: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12))
-                let ratio = vm.burnTimerFull > 0 ? vm.burnTimeLeft / vm.burnTimerFull : 0
-                let clamped = max(0.0, min(1.0, ratio))
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(burnBarColor(ratio: ratio))
-                    .frame(width: geo.size.width * CGFloat(clamped))
-                    .animation(.linear(duration: 0.05), value: vm.burnTimeLeft)
+        TimelineView(.animation) { context in
+            let ratio: Double = {
+                guard let start = vm.burnStartDate, vm.burnDurationValue > 0 else { return 1.0 }
+                let elapsed = context.date.timeIntervalSince(start)
+                return max(0.0, min(1.0, 1.0 - elapsed / vm.burnDurationValue))
+            }()
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12))
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(burnBarColor(ratio: ratio))
+                        .frame(width: geo.size.width * CGFloat(ratio))
+                }
             }
         }
         .frame(height: 4)

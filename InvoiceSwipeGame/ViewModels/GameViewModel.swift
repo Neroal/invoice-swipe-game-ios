@@ -38,8 +38,9 @@ final class GameViewModel: ObservableObject {
     @Published var isGameOver = false
 
     // MARK: – Burn timer (Endless only)
-    @Published var burnTimeLeft:  Double = 8.0
-    @Published var burnTimerFull: Double = 8.0
+    // View 用 burnStartDate + burnDuration 搭配 TimelineView 逐幀計算進度，不依賴 Timer 精度
+    @Published var burnStartDate: Date? = nil
+    @Published var burnDurationValue: Double = 8.0
     private var burnTimerSub: AnyCancellable?
 
     // MARK: – Card drag
@@ -320,26 +321,24 @@ final class GameViewModel: ObservableObject {
         guard currentMode == .endless, phase == .playing, !isGameOver else { return }
         burnTimerSub?.cancel()
         let duration = burnDuration(streak: currentStreak)
-        burnTimerFull = duration
-        burnTimeLeft  = duration
-        burnTimerSub = Timer.publish(every: 0.05, on: .main, in: .common)
+        burnDurationValue = duration
+        burnStartDate     = Date()
+        // Timer 只負責觸發 timeout，不再驅動 UI 更新
+        burnTimerSub = Timer.publish(every: duration, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
                 guard let self, self.phase == .playing, !self.isGameOver else { return }
-                self.burnTimeLeft = max(0, self.burnTimeLeft - 0.05)
-                if self.burnTimeLeft <= 0 {
-                    self.burnTimerSub?.cancel()
-                    self.burnTimerSub = nil
-                    self.handleBurnTimeout()
-                }
+                self.burnTimerSub?.cancel()
+                self.burnTimerSub = nil
+                self.handleBurnTimeout()
             }
     }
 
     private func stopBurnTimer() {
         burnTimerSub?.cancel()
         burnTimerSub = nil
-        burnTimeLeft  = 8.0
-        burnTimerFull = 8.0
+        burnStartDate     = nil
+        burnDurationValue = 8.0
     }
 
     private func handleBurnTimeout() {
