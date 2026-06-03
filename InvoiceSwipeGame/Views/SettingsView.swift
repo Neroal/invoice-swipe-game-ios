@@ -107,7 +107,7 @@ struct SettingsView: View {
                 settingRow {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("隱私權政策").foregroundColor(.white.opacity(0.85))
-                        Text("不蒐集任何個人資料")
+                        Text("排行榜與資料使用說明")
                             .font(.system(size: 12)).foregroundColor(.white.opacity(0.4))
                     }
                 } trailing: {
