@@ -11,7 +11,6 @@
 		1933B39CF1F89EB2B0853580 /* DailyChallengeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69FD997C8D117ED08501B56 /* DailyChallengeManager.swift */; };
 		243BFBFA1D504659261F6577 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7128725494FA03C27E78787C /* SoundManager.swift */; };
 		2FEB4B79A460E5A39E948B23 /* SeededRNG.swift in Sources */ = {isa = PBXBuildFile; fileRef = 237F3BD2D92DDB6CD53E4815 /* SeededRNG.swift */; };
-		30871166680E52097765E99E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FD381624E89BEA467A3F6BF0 /* Assets.xcassets */; };
 		3FC5214CDF8EBCFC36EB99DC /* GameMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741D7DDF71DF0505D437F77B /* GameMode.swift */; };
 		423D6D32C2353C08E8E8B94B /* InvoiceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D021D441FD25175C8DFB2E0 /* InvoiceCardView.swift */; };
 		4C0A2453C2E7D435C776AE5E /* PrizeNumbers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 486DDFF48BDB0428677E6A0E /* PrizeNumbers.swift */; };
@@ -31,7 +30,8 @@
 		CC07273B21CBD9658B838C7E /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EE31159D1A2356D815A26E7 /* ResultView.swift */; };
 		CC8E7B9B8D96C7947D9663CF /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C4EF1C6C9E0D737780D020 /* GameView.swift */; };
 		D7B3B064F619193F51CF9F26 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D317694B8E7C9A3BAFF435DA /* StartView.swift */; };
-		D80A2C162FD594090083A08B /* Icon-iOS-Default-1024x1024@1x.png in Resources */ = {isa = PBXBuildFile; fileRef = D80A2C152FD594090083A08B /* Icon-iOS-Default-1024x1024@1x.png */; };
+		D80A2C1E2FD59D7B0083A08B /* AppIcon.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D80A2C1B2FD59BE00083A08B /* AppIcon.xcassets */; };
+		D80A2C202FD5A59D0083A08B /* App Icon Template.png in Resources */ = {isa = PBXBuildFile; fileRef = D80A2C1F2FD5A59D0083A08B /* App Icon Template.png */; };
 		D812BFAE2FC97A4000AA595B /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D812BFAD2FC97A4000AA595B /* LeaderboardView.swift */; };
 		D812BFB02FC97A4D00AA595B /* LeaderboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D812BFAF2FC97A4D00AA595B /* LeaderboardViewModel.swift */; };
 		D89FC9EA2FC5727500B94AF5 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */; };
@@ -63,7 +63,8 @@
 		D0E23A477ABFBA25F937C1E3 /* WinTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinTier.swift; sourceTree = "<group>"; };
 		D317694B8E7C9A3BAFF435DA /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
 		D69FD997C8D117ED08501B56 /* DailyChallengeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyChallengeManager.swift; sourceTree = "<group>"; };
-		D80A2C152FD594090083A08B /* Icon-iOS-Default-1024x1024@1x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-iOS-Default-1024x1024@1x.png"; sourceTree = "<group>"; };
+		D80A2C1B2FD59BE00083A08B /* AppIcon.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = AppIcon.xcassets; sourceTree = "<group>"; };
+		D80A2C1F2FD5A59D0083A08B /* App Icon Template.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "App Icon Template.png"; sourceTree = "<group>"; };
 		D812BFAD2FC97A4000AA595B /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
 		D812BFAF2FC97A4D00AA595B /* LeaderboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardViewModel.swift; sourceTree = "<group>"; };
 		D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
@@ -76,7 +77,6 @@
 		F1E2D3C4B5A600010F1E2D3C /* GameCenterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCenterManager.swift; sourceTree = "<group>"; };
 		F1E2D3C4B5A600020F1E2D3C /* StoreKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitManager.swift; sourceTree = "<group>"; };
 		F1E2D3C4B5A600030F1E2D3C /* HapticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsManager.swift; sourceTree = "<group>"; };
-		FD381624E89BEA467A3F6BF0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,7 +147,7 @@
 		D4BAA6CF3F4204D0B19A1276 /* InvoiceSwipeGame */ = {
 			isa = PBXGroup;
 			children = (
-				D80A2C152FD594090083A08B /* Icon-iOS-Default-1024x1024@1x.png */,
+				D80A2C1F2FD5A59D0083A08B /* App Icon Template.png */,
 				D89FC9ED2FC58F9200B94AF5 /* InvoiceSwipeGame.entitlements */,
 				D89FC9E92FC5727500B94AF5 /* Launch Screen.storyboard */,
 				D89FC9EB2FC5788300B94AF5 /* PrivacyInfo.xcprivacy */,
@@ -159,8 +159,8 @@
 				EBEF7C92E047BC8F73206D87 /* Services */,
 				5FBD1E110D62A624DCC6D812 /* ViewModels */,
 				27E84255ED83F111C48120AC /* Views */,
-				FD381624E89BEA467A3F6BF0 /* Assets.xcassets */,
 				DC4275F37C711520F972BFA7 /* Info.plist */,
+				D80A2C1B2FD59BE00083A08B /* AppIcon.xcassets */,
 			);
 			path = InvoiceSwipeGame;
 			sourceTree = "<group>";
@@ -237,11 +237,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D80A2C1E2FD59D7B0083A08B /* AppIcon.xcassets in Resources */,
 				D89FC9EC2FC5788300B94AF5 /* PrivacyInfo.xcprivacy in Resources */,
-				D80A2C162FD594090083A08B /* Icon-iOS-Default-1024x1024@1x.png in Resources */,
 				D89FC9EA2FC5727500B94AF5 /* Launch Screen.storyboard in Resources */,
-				30871166680E52097765E99E /* Assets.xcassets in Resources */,
 				D8AA519D2FC5C769009DEAB7 /* 發票對對碰.storekit in Resources */,
+				D80A2C202FD5A59D0083A08B /* App Icon Template.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -331,6 +331,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				BUNDLE_IDENTIFIER = "com.neroal.invoice-swipe-game";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = InvoiceSwipeGame/InvoiceSwipeGame.entitlements;
@@ -358,6 +359,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				BUNDLE_IDENTIFIER = "com.neroal.invoice-swipe-game";
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = InvoiceSwipeGame/InvoiceSwipeGame.entitlements;
